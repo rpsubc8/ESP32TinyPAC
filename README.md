@@ -1,5 +1,5 @@
 # ESP32TinyPAC
-Port Arcade Pacman SDL x86 (superzazu) to ESP32 (TTGO VGA32 1.x)
+Port emulator Arcade Pacman SDL x86 (superzazu) to ESP32 (TTGO VGA32 1.x)
 <center>
  <img src='preview/pacmancapture.gif'>
  <img src='preview/pacmanrotate.gif'>
