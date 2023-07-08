@@ -24,7 +24,7 @@ Port emulator Arcade Pacman SDL x86 (superzazu) to ESP32 (TTGO VGA32 1.x)
  <li>
   Keyboard PS/2
   <ul>
-   <li>OSD key F1</li>li>
+   <li>OSD key F1</li>
    <li>Left, right, up, down</li>
    <li>5 coin (slot 1)</li>
    <li>4 coin (slot 2)</li>
