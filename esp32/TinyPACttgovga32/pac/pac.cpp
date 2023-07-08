@@ -91,7 +91,7 @@ static void wb(void* userdata, uint16_t addr, uint8_t val)
     } else if (addr == 0x5007) {
       // coin counter
     } else if (addr >= 0x5040 && addr <= 0x505f) { // audio
-      //JJ wsg_write(&p->sound_chip, addr - 0x5040, val); //revisar sonido
+       wsg_write(&p->sound_chip, addr - 0x5040, val); //revisar sonido
     } else if (addr >= 0x5060 && addr <= 0x506f) {
       p->sprite_pos[addr - 0x5060] = val;
     } else if (addr >= 0x50c0 && addr <= 0x50ff) {
@@ -533,9 +533,10 @@ static inline void pac_draw(pac* const p)
   //if ((gb_fps_cur & 0x01)==0)
   {
    unsigned char cont=0;
+   unsigned int aux_ini= gb_ini_x;
    if (gb_vertical==0)
    {
-    unsigned int aux_ini= gb_ini_x>>2;
+    //unsigned int aux_ini= gb_ini_x>>2;    
     for (y=0;y<288;y++)
     {
      //memcpy(gb_buffer_vga[y],gb_224x288[y],224);
@@ -570,9 +571,11 @@ static inline void pac_draw(pac* const p)
     */
     
     unsigned char destY;
+    unsigned aux_ini_x= gb_ini_x;
+    unsigned aux_ini_y= gb_ini_y;
     for (unsigned char x=0;x<224;x++)
     {
-     destY=72;
+     destY=72;     
      for (unsigned short y=0;y<288;y+=4)
      {      
       a3= gb_224x288[y][x];
@@ -581,7 +584,9 @@ static inline void pac_draw(pac* const p)
       a0= gb_224x288[y+3][x];
       a32= a2 | (a3<<8) | (a0<<16) | (a1<<24);
       //gb_buffer_vga32[x][72-(y>>2)]= a32; //288 DIV 4 - y DIV 4
-      gb_buffer_vga32[x][destY--]= a32; //288 DIV 4 - y DIV 4
+//      gb_buffer_vga32[x][destY--]= a32; //288 DIV 4 - y DIV 4
+      gb_buffer_vga32[x+aux_ini_y][(destY+gb_ini_x)]= a32; //288 DIV 4 - y DIV 4
+      destY--;
      }
     }
 
@@ -589,9 +594,74 @@ static inline void pac_draw(pac* const p)
   }
 }
 
+
+//#ifdef use_lib_sound_ay8912  
+// void sound_cycleFabgl()
+// {  
+//  //AY8912
+//  for (unsigned char i=0;i<3;i++)
+//  {
+//   /*
+//   if (gbVolMixer_now[i] != gbVolMixer_before[i])
+//   {
+//    //gb_sineArray[i].setVolume((gbVolMixer_now[i]<<2));    
+//    switch (gbShiftLeftVolumen)
+//    {
+//      case 0: gb_sineArray[i].setVolume((gbVolMixer_now[i]<<2)); break;
+//      case 1: gb_sineArray[i].setVolume((gbVolMixer_now[i]<<1)); break;
+//      case 2: gb_sineArray[i].setVolume((gbVolMixer_now[i])); break;
+//      case 3: gb_sineArray[i].setVolume((gbVolMixer_now[i]>>1)); break;
+//      case 4: gb_sineArray[i].setVolume((gbVolMixer_now[i]>>2)); break;
+//      default: gb_sineArray[i].setVolume((gbVolMixer_now[i]<<2)); break;
+//    }
+//    
+//    gbVolMixer_before[i] = gbVolMixer_now[i];
+//   }
+//   */
+//   //if (gbFrecMixer_now[i] != gbFrecMixer_before[i])
+//   {
+//    //gb_sineArray[i].setVolume(gbVolMixer_now[i]<<4);
+//    gb_sineArray[i].setVolume(127);
+//
+//    gb_sineArray[i].setFrequency(gbFrecMixer_now[i]);
+//    gbFrecMixer_before[i] = gbFrecMixer_now[i];
+//   }
+//  }
+// }
+//#endif
+
 // generates audio for one frame
 static inline void sound_update(pac* const p) 
 {
+ //#ifdef use_lib_sound_ay8912  
+ // for (unsigned char i=0;i<3;i++)      
+ // {
+ //  unsigned int frec= p->sound_chip.voices[i].frequency;         
+ //  //frec= frec>>6; //Para seno
+ //  gbFrecMixer_now[i]= frec>>6;
+ //  gbVolMixer_now[i]= ((p->sound_chip.voices[i].frequency>0)&&(p->sound_chip.voices[i].volume>0)) ? 15 : 0;   
+ //  //gb_ct_Pulse[i]= ((gbFrecMixer_now[i]>0)&&(gbVolMixer_now[i]>0)) ? (unsigned int)((44100 / gbFrecMixer_now[i]))>>1 : 0;   
+ // }
+ //
+ // sound_cycleFabgl();
+ //#endif 
+
+ #ifdef use_lib_sound_digital
+  for (unsigned char i=0;i<3;i++)      
+  {
+   unsigned int frec= p->sound_chip.voices[i].frequency;
+   #ifdef use_lib_sound_dac
+    frec= frec>>6; //Para DAC analogico
+   #else 
+    frec= frec>>4; //Para pulsos digitales   
+   #endif   
+   gbFrecMixer_now[i]= frec;
+   gbVolMixer_now[i]= ((p->sound_chip.voices[i].frequency>0)&&(p->sound_chip.voices[i].volume>0)) ? 15 : 0;   
+   //gb_ct_Pulse[i]= ((gbFrecMixer_now[i]>0)&&(gbVolMixer_now[i]>0)) ? (unsigned int)((10000 / gbFrecMixer_now[i]))>>1 : 0; //10000 Hz
+   gb_ct_Pulse[i]= ((gbFrecMixer_now[i]>0)&&(gbVolMixer_now[i]>0)) ? (unsigned int)((8000 / gbFrecMixer_now[i]))>>1 : 0; //8000 Hz
+  }
+   
+ #endif
   /*
   if (!p->sound_enabled || p->mute_audio) {
     return;
@@ -757,7 +827,7 @@ void pac_init(pac* const p)
   //p->update_screen = NULL;
 
   // audio
-  //JJ wsg_init(&p->sound_chip, p->sound_rom1); //revisar sonido
+  wsg_init(&p->sound_chip, p->sound_rom1); //revisar sonido
   //JJ p->audio_buffer_len = WSG_SAMPLE_RATE / PAC_FPS; //revisar sonido
   //JJ p->audio_buffer = (int16_t *) calloc(p->audio_buffer_len, sizeof(int16_t));
   //JJ p->sample_rate = 44100; //revisar sonido
@@ -805,7 +875,7 @@ void pac_update(pac* const p, unsigned int ms)
          pac_draw(p);
         }
         //p->update_screen(p);
-        //sound_update(p);
+        sound_update(p);
         
         gb_fps_cur++;
       }

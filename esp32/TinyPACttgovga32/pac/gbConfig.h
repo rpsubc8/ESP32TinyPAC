@@ -1,6 +1,11 @@
 #ifndef _GB_CONFIG
  #define _GB_CONFIG
 
+ //Sound
+ //#define use_lib_sound_ay8912
+ #define use_lib_sound_digital
+ #define use_lib_sound_dac
+
  //#define use_lib_fix_double_precision
 
  #define use_lib_tinybitluni_fast

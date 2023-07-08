@@ -8,7 +8,10 @@
 // - 320x240 Vertical
 // - 320x350 Horizontal and Vertical
 // - 400x300 Horizontal and Vertical
+//Sound DAC (GPIO 25,26) ISR routine
+//Sound Digital (GPIO 25 digital) ISR routine
 //Keyboard PS/2
+//OSD F1 Key
 // Left, right, up, down
 // 5 coin (slot 1)
 // 4 coin (slot 2)
@@ -42,6 +45,41 @@
 #include "soc/timer_group_struct.h"
 
 #include "gbsdlfont6x8.h"
+
+
+#ifdef use_lib_sound_digital 
+ #ifdef use_lib_sound_dac
+  #include <driver/dac.h>
+ #endif 
+ volatile unsigned char gbVolMixer_now[3]={0,0,0};;
+ volatile unsigned int gbFrecMixer_now[3]={0,0,0};;
+ volatile unsigned short int gb_ct[3]={0,0,0};
+ volatile unsigned short int gb_ct_Pulse[3]={0,0,0};
+ volatile unsigned char gb_flip[3]={0,0,0};
+ volatile unsigned char gb_dac_vol=50;
+#endif
+
+//#ifdef use_lib_sound_ay8912
+// #include "fabgl.h" //Para fabgl
+// #include "fabutils.h" //Para fabgl
+// //#include "WiFiGeneric.h" //Quitar para dependencia al compilar
+//
+// unsigned char gb_sillence_all=0;
+// SoundGenerator soundGenerator;
+// SineWaveformGenerator gb_sineArray[3];
+// unsigned char gbVolMixer_before[3]={0,0,0};
+// unsigned short int gbFrecMixer_before[3]={0,0,0};
+// unsigned char gbVolMixer_now[3]={0,0,0};
+// unsigned short int gbFrecMixer_now[3]={0,0,0}; 
+// unsigned char gb_silence_all_channels=1; 
+// unsigned char gbShiftLeftVolumen=0; //Maximo volumen shift left 2
+// unsigned char gb_mute_sound=0;
+// static unsigned int gb_sdl_time_sound_before;
+//  
+// void sound_cycleFabgl(void);
+// void jj_mixpsg(void);
+// void SilenceAllChannels(void); 
+//#endif 
 
 #ifdef use_lib_tinybitluni_fast
  #include "vga6bit.h"
@@ -141,6 +179,58 @@ static uint32_t dt = 0;
  unsigned char gb_rlen_uart=0;
  unsigned char gb_current_ms_poll_keyboard_uart= 10;
 #endif
+
+
+
+
+//#ifdef use_lib_sound_ay8912
+// void SilenceAllChannels()
+// {  
+//  for (unsigned char i=0;i<3;i++)  
+//  {
+//   gb_sineArray[i].setFrequency(0);
+//   gb_sineArray[i].setVolume(0);
+//   gbVolMixer_before[i] = gbVolMixer_now[i] = 0;
+//   gbFrecMixer_before[i] = gbFrecMixer_now[i] = 0;
+//  }  
+// }
+//
+//
+//
+// inline void jj_mixpsg()
+// {
+//  int auxFrec;
+//  /*
+//  gbVolMixer_now[0] = psgregs[8]&15;//((psgregs[8]&15)>4)?16:0;
+//  gbVolMixer_now[1] = psgregs[9]&15;//((psgregs[9]&15)>4)?16:0;
+//  gbVolMixer_now[2] = psgregs[10]&15;//((psgregs[10]&15)>4)?16:0;
+//  if (gbVolMixer_now[0] == 0) gbFrecMixer_now[0] = 0;
+//  else{
+//   gbVolMixer_now[0]=15;
+//   auxFrec =((psgregs[0]|((psgregs[1]<<8)&0xF00)))+1;
+//   auxFrec = (auxFrec>0)?(62500/auxFrec):0;
+//   if (auxFrec>15000) auxFrec=15000;
+//   gbFrecMixer_now[0] = auxFrec;
+//  }
+//  if (gbVolMixer_now[1] == 0) gbFrecMixer_now[1] = 0;
+//  else{
+//   gbVolMixer_now[1]=15; 
+//   auxFrec = ((psgregs[2]|((psgregs[3]<<8)&0xF00)))+1;  
+//   auxFrec = (auxFrec>0)?(62500/auxFrec):0;
+//   if (auxFrec>15000) auxFrec=15000;   
+//   gbFrecMixer_now[1] = auxFrec;
+//  }
+//  if (gbVolMixer_now[2] == 0) gbFrecMixer_now[2] = 0;
+//  else{
+//   gbVolMixer_now[2]=15;
+//   auxFrec = ((psgregs[4]|((psgregs[5]<<8)&0xF00)))+1;
+//   auxFrec = (auxFrec>0)?(62500/auxFrec):0;
+//   if (auxFrec>15000) auxFrec=15000;   
+//   gbFrecMixer_now[2] = auxFrec;
+//  }
+//  */
+// } 
+//#endif 
 
 
 
@@ -307,7 +397,10 @@ void PreparaPaleta()
      //case 0x34: IO_keyboard_matrix_[1]&= 0xF7; break; //4
      case 0x35: p->coin_s1=1; break; //5 coin (slot 1)   
      case 0x76: case 0x56: p->coin_s2= 1; break; //V coin (slot 2)
-     case 0x74: case 0x54: p->board_test= 1; break; //T board test
+     case 0x74: case 0x54: 
+      p->board_test= 1; 
+      //gbVolMixer_now[0]= gbVolMixer_now[1]= gbVolMixer_now[2]= 0; //silencio= 1; //silencio
+      break; //T board test
 //     case 0x70: case 0x50: is_paused= ((~is_paused)&0x01); break; //P paused
      //case 0x6D: case 0x4D: p->mute_audio= 1; break; //M mute audio
      //case 0x69: case 0x49: pac_cheat_invincibility(p); break; //I
@@ -569,10 +662,182 @@ static void mainloop(void)
 
 
 
+ #ifdef use_lib_sound_digital
+ hw_timer_t *gb_timerSound = NULL;
+
+ volatile unsigned char gb_spk_data=0;
+ volatile unsigned char gb_spk_data_before=0; 
+ volatile unsigned char gb_sillence_all=0;
+
+ 
+ //volatile unsigned int gb_time=0;
+
+
+
+
+/*
+ void IRAM_ATTR onTimerSound()
+ {
+  #ifdef use_lib_sound_dac
+  //Para DAC   
+  unsigned int auxByte;
+  unsigned int media=0;
+  unsigned int valor;
+  
+  if (gb_spk_data != gb_spk_data_before)
+  {
+   //dac_output_voltage(25,gb_spk_data);
+   //dacWrite(25,gb_spk_data);
+   #ifdef SPEAKER_PIN == 25
+    dac_output_voltage(DAC_CHANNEL_1, gb_spk_data);
+   #else 
+    dac_output_voltage(DAC_CHANNEL_2, gb_spk_data);
+   #endif 
+   gb_spk_data_before= gb_spk_data;
+  }
+  
+  gb_contador_muestra++;    
+  //gb_time= gb_contador_muestra/8000;
+  //gb_time++;
+  
+
+  
+  //if (
+  //    (gb_sillence_all==1)
+  //    //||
+  //    //((gbFrecMixer_now[0]==0)&&(gbFrecMixer_now[1]==0)&&(gbFrecMixer_now[2]==0))
+  //    //||
+  //    //((gbVolMixer_now[0]==0)&&(gbVolMixer_now[1]==0)&&(gbVolMixer_now[2]==0))
+  //   ) 
+  //{
+  // //gb_spk_data= 127;
+  // gb_spk_data= 0;
+  // return;
+  //}
+  
+  if (gb_sillence_all==1)
+  {
+   gb_spk_data= 0;
+   return;
+  }
+  
+
+  for (unsigned char i=0;i<3;i++)
+  {
+   //auxByte= (gbVolMixer_now[i] * gbFrecMixer_now[i]) * gb_time;
+   //auxByte= (gbVolMixer_now[i] * gbFrecMixer_now[i] * 6 * gb_contador_muestra)/8000;
+   //Tengo que multiplicar por 6, que es 4+2 aproximado a 2xPI
+   if (gbVolMixer_now[i] == 0)
+   {
+    valor= 0;
+   }
+   else
+   {
+    auxByte= (gbVolMixer_now[i] * gbFrecMixer_now[i] * gb_contador_muestra)<<2; //x4    
+    auxByte= (auxByte + (auxByte<<1)) >>13; //DIV 8192 aproximado 8000 x2 DIV 8192
+    valor= gb_sin[(auxByte & 0xFF)]; //MOD 256    
+   }
+   //if (valor<64)
+   //{
+   // valor= 63-valor;
+   //}      
+   media= (media + valor)>>1; //Media aproximada   
+  } 
+  //media= (media/3);  
+  //media= media>>6;
+  //media= media;
+  //media= (media>>6);
+  //media= (media>>1);
+  //media= (unsigned char)(media) & 0xFF;
+  //media= media<<3;
+  //media= media;  
+  //if (media>250) media=250;
+  //if (media<5) media=5;
+
+  media= (media & 0xFF);
+  switch (gb_dac_vol)
+  {
+   case 1: media= media>>1; break; //25%
+   //case 2: media= media; break; //50%
+   case 3: media= media<<1; break;
+   case 4: media= media<<2; break; //100%
+  }
+  gb_spk_data= media;
+  //gb_time++;
+#else
+
+
+   
+  //Para digital
+  if (gb_spk_data != gb_spk_data_before)
+  {
+   //digitalWrite(SPEAKER_PIN, gb_spk_data);
+   //GPIO 0..31
+   if (gb_spk_data)
+    GPIO.out_w1ts= 1<<25; //1<<25;
+   else
+    GPIO.out_w1tc = 1<<25;
+   gb_spk_data_before= gb_spk_data;
+  }
+  
+  if (gb_sillence_all==1)
+  {
+   gb_spk_data= 0;
+   return;
+  }
+
+  //digitalWrite(SPEAKER_PIN, !digitalRead(SPEAKER_PIN));
+  for (unsigned char j=0;j<3;j++)
+  {
+   if (gb_ct[j] >= (gb_ct_Pulse[j]-1))
+   {
+    gb_flip[j]= (~gb_flip[j]) & 0x01;
+    gb_ct[j]= 0;
+   }
+   gb_ct[j]++;
+  }
+
+  if ((gb_flip[0]==1)&&(gbVolMixer_now[0]>0)){
+   gb_spk_data= 1;
+  }
+  else{
+   if ((gb_flip[1]==1)&&(gbVolMixer_now[1]>0)){
+    gb_spk_data= 1;
+   }
+   else{
+    gb_spk_data= ((gb_flip[2]==1)&&(gbVolMixer_now[2]>0)) ? 1 : 0;
+   }
+  }  
+ #endif 
+  
+ }
+*/
+
+#endif 
 
 
 void setup() 
 {
+ #ifdef use_lib_sound_digital
+  #ifdef use_lib_sound_dac
+   #ifdef SPEAKER_PIN == 25
+    dac_output_enable(DAC_CHANNEL_1);
+   #else
+    dac_output_enable(DAC_CHANNEL_2);
+   #endif 
+  #else 
+   pinMode(SPEAKER_PIN, OUTPUT);
+  #endif 
+  gb_timerSound = timerBegin(0, 80, true);
+  #ifdef use_lib_sound_dac
+   timerAttachInterrupt(gb_timerSound, &onTimerSoundDAC, true);
+  #else
+   timerAttachInterrupt(gb_timerSound, &onTimerSoundDigital, true);
+  #endif 
+  timerAlarmWrite(gb_timerSound, 125, true); //1000000 1 segundo  125 es 8000 hz
+  timerAlarmEnable(gb_timerSound);  
+ #endif
+
  #if defined(use_lib_log_serial) || defined(use_lib_keyboard_uart)
   Serial.begin(115200);
   Serial.printf("Begin Setup\n");   
@@ -604,6 +869,8 @@ void setup()
   gb_alto= 300;
   gb_vertical= 0;
   gb_videomode_cur= 4;
+  gb_ini_x=21; //(400-224)=176/2/4=22
+  gb_ini_y=5; //(300-288)=12/2=6  
  #else
   #ifdef use_lib_vga320x350_bitluni
    vga_init(pin_config,VgaMode_vga_mode_320x350,false,0,0,0,0,0); //320x350 Funciona bien
@@ -612,6 +879,8 @@ void setup()
    gb_alto= 350;
    gb_vertical= 0;
    gb_videomode_cur= 2;
+   gb_ini_x=11; //(320-224)=96/2/4=12
+   gb_ini_y=30; //(350-288)=62/2=31   
   #else
    #ifdef use_lib_vga320x240
     vga_init(pin_config,VgaMode_vga_mode_320x240,false,0,0,0,0,0); //320x240
@@ -620,6 +889,8 @@ void setup()
     gb_alto= 240;
     gb_vertical= 1;
     gb_videomode_cur= 0;
+    gb_ini_x=3; //(320-288)=32/2/4=4
+    gb_ini_y=7; //(240-224)=16/2=8    
    #else
    #endif
   #endif
@@ -653,6 +924,17 @@ void setup()
  kb_begin(); 
 
 
+ //#ifdef use_lib_sound_ay8912
+ // gb_sdl_time_sound_before = millis();
+ // for (unsigned char i=0;i<3;i++)
+ // {
+ //  soundGenerator.attach(&gb_sineArray[i]);
+ //  gb_sineArray[i].enable(true);
+ //  gb_sineArray[i].setFrequency(0);
+ // }
+ // soundGenerator.play(true);
+ //#endif
+
  //JJ if (pac_init(p) != 0) 
  //JJ {   
  //JJ   Serial.printf("Please copy rom files next to pac executable.\r\n");    
@@ -684,6 +966,7 @@ void loop()
   if (gb_reset==1)
   {//reset software
    gb_reset= 0;
+   gbVolMixer_now[0]= gbVolMixer_now[1]= gbVolMixer_now[2]= 0; //silencio
    pac_init(p);
   }  
  }

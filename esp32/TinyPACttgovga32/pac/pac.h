@@ -63,7 +63,7 @@ struct pac
   //void (*update_screen)(pac* const n);
 
   // audio
-  //JJ wsg sound_chip; //revisar sonido
+   wsg sound_chip; //revisar sonido
   //JJ int audio_buffer_len; //revisar sonido
   //JJ int16_t* audio_buffer; //revisar sonido
   //JJ int sample_rate; //revisar sonido
@@ -79,5 +79,9 @@ void pac_update(pac* const p, unsigned int ms);
 //void pac_cheat_invincibility(pac* const p);
 
 void pac_assign_ptr(pac* const p);
+
+//#ifdef use_lib_sound_ay8912
+// void sound_cycleFabgl(void);
+//#endif
 
 #endif // PAC_PAC_H

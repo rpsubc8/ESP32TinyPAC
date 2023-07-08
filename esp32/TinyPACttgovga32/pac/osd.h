@@ -15,5 +15,9 @@
  #endif 
 
  void SetVideoMode(unsigned char id,unsigned char aVertical);
+ void IRAM_ATTR onTimerSoundDigital(void);
+ #ifdef use_lib_sound_dac
+  void IRAM_ATTR onTimerSoundDAC(void);
+ #endif 
 
 #endif

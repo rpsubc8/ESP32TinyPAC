@@ -1,8 +1,7 @@
-//JJ #include "wsg.h" //revisar sonido
+ #include "wsg.h" //revisar sonido
 
-//JJ void wsg_init(wsg* const w, uint8_t* const sound_rom) //revisar sonido
-//JJ{
-  /*
+ void wsg_init(wsg* const w, uint8_t* const sound_rom) //revisar sonido
+ {  
   for (int voice_no = 0; voice_no < 3; voice_no++) {
     w->voices[voice_no].frequency = 0;
     w->voices[voice_no].accumulator = 0;
@@ -10,13 +9,11 @@
     w->voices[voice_no].volume = 0;
   }
   w->sound_rom = sound_rom;
-  w->gain = 25;
-  */
-//JJ}
+  w->gain = 25;  
+ }
 
-//JJ void wsg_write(wsg* const w, uint8_t address, uint8_t value)  //revisar sonido
-//JJ{
-  /*
+ void wsg_write(wsg* const w, uint8_t address, uint8_t value)  //revisar sonido
+ {  
   // waveform 1
   if (address == 0x5) {
     //JJ w->voices[0].waveform_no = value & 0b111;
@@ -66,8 +63,8 @@
     w->voices[2].accumulator &= ~(0x0F << (sample_no * 4)); //JJ w->voices[2].accumulator &= ~(0b1111 << (sample_no * 4));
     w->voices[2].accumulator |= (value & 0x0F) << (sample_no * 4); //JJ w->voices[2].accumulator |= (value & 0b1111) << (sample_no * 4);
   }
-  */
-//JJ }
+  
+ }
 
 //JJ void wsg_play(wsg* const w, int16_t* const buffer, int buffer_len) //revisar sonido
 //JJ {

@@ -7,6 +7,38 @@
  
  //extern FILE *gb_file_log;
 
+ #ifdef use_lib_sound_dac
+  extern volatile unsigned char gb_dac_vol;
+ #endif 
+
+ #ifdef use_lib_sound_digital
+  extern hw_timer_t *gb_timerSound;
+  extern volatile unsigned char gbVolMixer_now[3];
+  extern volatile unsigned int gbFrecMixer_now[3];
+  extern volatile unsigned short int gb_ct[3];
+  extern volatile unsigned short int gb_ct_Pulse[3];  
+  extern volatile unsigned char gb_flip[3];
+  extern volatile unsigned char gb_sillence_all;
+  extern volatile unsigned char gb_spk_data;
+  extern volatile unsigned char gb_spk_data_before; 
+ #endif
+
+ //#ifdef use_lib_sound_ay8912 
+ // #include "fabgl.h" //Para fabgl
+ // #include "fabutils.h" //Para fabgl
+ // extern unsigned char gb_sillence_all;
+ // extern SineWaveformGenerator gb_sineArray[3];
+ // extern unsigned char gb_silence_all_channels;
+ // extern unsigned char gbShiftLeftVolumen;
+ // extern unsigned char gb_mute_sound;
+ //
+ // extern unsigned char gbVolMixer_before[3];
+ // extern unsigned short int gbFrecMixer_before[3];
+ // extern unsigned char gbVolMixer_now[3];
+ // extern unsigned short int gbFrecMixer_now[3];
+ //#endif 
+
+
  extern unsigned char gb_speed;
 
  extern const unsigned char * gb_sdl_font;

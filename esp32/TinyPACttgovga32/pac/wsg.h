@@ -2,7 +2,7 @@
 #define PAC_WSG_H
 // Namco WSG (Waveform Sound Generator): 3 voice mono wavetable chip (96kHz)
 
-/* JJ
+
 
 #include <stdint.h>
 
@@ -27,6 +27,6 @@ void wsg_init(wsg* const w, unsigned char* const sound_rom);
 void wsg_write(wsg* const w, uint8_t address, uint8_t value);
 void wsg_play(wsg* const w, int16_t* const buffer, int buffer_len);
 
-*/
+
 
 #endif // PAC_WSG_H
