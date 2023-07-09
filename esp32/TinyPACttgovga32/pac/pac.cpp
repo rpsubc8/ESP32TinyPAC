@@ -671,7 +671,8 @@ static inline void sound_update(pac* const p)
    
    
    gbFrecMixer_now[i]= frec;
-   gbVolMixer_now[i]= ((p->sound_chip.voices[i].frequency>0)&&(p->sound_chip.voices[i].volume>0)) ? 15 : 0;   
+   gbVolMixer_now[i]= ((p->sound_chip.voices[i].frequency>0)&&(p->sound_chip.voices[i].volume>0)) ? 15 : 0;
+   //gbVolMixer_now[i]= ((p->sound_chip.voices[i].frequency>0)&&(p->sound_chip.voices[i].volume>0)) ? 1 : 0;
    //gb_ct_Pulse[i]= ((gbFrecMixer_now[i]>0)&&(gbVolMixer_now[i]>0)) ? (unsigned int)((10000 / gbFrecMixer_now[i]))>>1 : 0; //10000 Hz
    if (gb_use_sound_digital==1)
    {

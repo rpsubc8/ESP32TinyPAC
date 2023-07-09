@@ -23,6 +23,7 @@
   extern volatile unsigned char gb_spk_data_before; 
   extern unsigned char gb_use_sound_digital;
   extern unsigned char gb_mute;
+  extern unsigned char gb_sound_signed;
  #endif
 
  //#ifdef use_lib_sound_ay8912 

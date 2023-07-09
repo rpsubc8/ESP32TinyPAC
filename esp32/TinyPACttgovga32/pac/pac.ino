@@ -33,7 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <time.h>
+//#include <time.h> //no lo necesito
 
 #include "pac.h"
 #include "osd.h"
@@ -59,6 +59,7 @@
  volatile unsigned char gb_dac_vol=50;
  unsigned char gb_use_sound_digital=0;
  unsigned char gb_mute=0;
+ unsigned char gb_sound_signed=0;
 #endif
 
 //#ifdef use_lib_sound_ay8912

@@ -76,7 +76,7 @@ const char * gb_main_menu[max_gb_main_menu]={
 };
 
 #ifdef use_lib_sound_dac
- #define max_gb_sound_menu 7
+ #define max_gb_sound_menu 9
  const char * gb_sound_menu[max_gb_sound_menu]={
   "Digital ON",
   "Digital OFF",
@@ -84,7 +84,9 @@ const char * gb_main_menu[max_gb_main_menu]={
   "DAC (75%)",
   "DAC (50%)",
   "DAC (25%)",
-  "DAC (0%)"
+  "DAC (0%)",
+  "DAC Unsigned",
+  "DAC Signed"
  };
 #else
  #define max_gb_sound_menu 2
@@ -623,7 +625,8 @@ void ShowTinyKeyboardPollMenu()
 
  #ifdef use_lib_sound_dac
   
-  const static DRAM_ATTR unsigned char gb_sin[256]={
+  
+  static DRAM_ATTR unsigned char gb_sin[256]={
    0x40,0x2E,0x1D,0x06,0x00,0x05,0x0E,0x1C,0x3E,0x50,0x6E,0x79,0x7E,0x7B,0x72,0x55,
    0x43,0x31,0x12,0x07,0x00,0x04,0x0C,0x29,0x3A,0x5D,0x6C,0x77,0x7F,0x7C,0x67,0x58,
    0x34,0x23,0x14,0x02,0x00,0x0A,0x16,0x26,0x49,0x5A,0x75,0x7D,0x7F,0x76,0x6A,0x4A,
@@ -642,6 +645,27 @@ void ShowTinyKeyboardPollMenu()
    0x04,0x00,0x06,0x11,0x2F,0x41,0x53,0x71,0x7A,0x7F,0x79,0x70,0x51,0x40,0x1D,0x0F
   }; //Multiplicado por 64 y previo sumado 1 sin signo
 
+
+/*
+  const static DRAM_ATTR signed char gb_sin[256]={
+   0,    3,    6,    9,   12,   16,   19,   22,   25,   28,   31,   34,   37,   40,   43,   46,
+  49,   51,   54,   57,   60,   63,   65,   68,   71,   73,   76,   78,   81,   83,   85,   88,
+  90,   92,   94,   96,   98,  100,  102,  104,  106,  107,  109,  111,  112,  113,  115,  116,
+ 117,  118,  120,  121,  122,  122,  123,  124,  125,  125,  126,  126,  126,  127,  127,  127,
+ 127,  127,  127,  127,  126,  126,  126,  125,  125,  124,  123,  122,  122,  121,  120,  118,
+ 117,  116,  115,  113,  112,  111,  109,  107,  106,  104,  102,  100,   98,   96,   94,   92,
+  90,   88,   85,   83,   81,   78,   76,   73,   71,   68,   65,   63,   60,   57,   54,   51,
+  49,   46,   43,   40,   37,   34,   31,   28,   25,   22,   19,   16,   12,    9,    6,    3,
+   0,   -3,   -6,   -9,  -12,  -16,  -19,  -22,  -25,  -28,  -31,  -34,  -37,  -40,  -43,  -46,
+ -49,  -51,  -54,  -57,  -60,  -63,  -65,  -68,  -71,  -73,  -76,  -78,  -81,  -83,  -85,  -88,
+ -90,  -92,  -94,  -96,  -98, -100, -102, -104, -106, -107, -109, -111, -112, -113, -115, -116,
+-117, -118, -120, -121, -122, -122, -123, -124, -125, -125, -126, -126, -126, -127, -127, -127,
+-127, -127, -127, -127, -126, -126, -126, -125, -125, -124, -123, -122, -122, -121, -120, -118,
+-117, -116, -115, -113, -112, -111, -109, -107, -106, -104, -102, -100,  -98,  -96,  -94,  -92,
+ -90,  -88,  -85,  -83,  -81,  -78,  -76,  -73,  -71,  -68,  -65,  -63,  -60,  -57,  -54,  -51,
+ -49,  -46,  -43,  -40,  -37,  -34,  -31,  -28,  -25,  -22,  -19,  -16,  -12,   -9,   -6,   -3,
+ };
+ */
 
   /*
   const static DRAM_ATTR unsigned char gb_sin[256]={
@@ -705,8 +729,14 @@ void ShowTinyKeyboardPollMenu()
     else
     {
      auxByte= (gbVolMixer_now[i] * gbFrecMixer_now[i] * gb_contador_muestra)<<2; //x4    
+     //auxByte= (gbVolMixer_now[i] * gbFrecMixer_now[i] * gb_contador_muestra * 3); //x3    
      auxByte= (auxByte + (auxByte<<1)) >>13; //DIV 8192 aproximado 8000 x2 DIV 8192
      valor= gb_sin[(auxByte & 0xFF)]; //MOD 256    
+     //if (gb_sound_signed == 1){
+     // if (valor<64){
+     //  valor= (64-valor);
+     // }
+     //}
     }
     media= (media + valor)>>1; //Media aproximada   
    } 
@@ -733,7 +763,9 @@ void ShowTinySoundMenu()
  //DAC (75%)
  //DAC (50%)
  //DAC (25%)
- //DAC (0%)  
+ //DAC (0%) 
+ //DAC Unsigned 
+ //DAC Signed
  unsigned char aSelNum;
  unsigned char modoDigi=0;
  unsigned char modoDAC=0;
@@ -753,6 +785,41 @@ void ShowTinySoundMenu()
    case 4: gb_dac_vol= 2; gb_sillence_all= 0; gb_mute= 0; modoDAC= 1; break;
    case 5: gb_dac_vol= 1; gb_sillence_all= 0; gb_mute= 0; modoDAC= 1; break;
    case 6: gb_sillence_all= 1; gb_mute= 1; modoDAC= 1; break;
+   case 7: 
+    //Le he dado a unsigned y estaba en signed
+    if (modoDAC==0){
+     modoDAC= 1;
+    }
+    if (gb_sound_signed==1)
+    {
+     gb_sound_signed= 0; 
+     for (unsigned short int i=0;i<256;i++)
+     {
+      if (gb_sin[i]<64){
+       gb_sin[i]= 64-gb_sin[i];
+      }
+     }
+     //gb_sound_signed= ((~gb_sound_signed) & 0x01);
+    }
+    break;    
+   case 8:
+    //Le he dado a signo y estaba en unsigned
+    if (modoDAC==0){
+     modoDAC= 1;
+    }
+    if (gb_sound_signed==0)
+    {
+     gb_sound_signed= 1;
+     for (unsigned short int i=0;i<256;i++)
+     {
+      if (gb_sin[i]<64){
+       gb_sin[i]= 64-gb_sin[i];
+      }
+     }    
+     //gb_sound_signed= ((~gb_sound_signed) & 0x01);
+    }
+
+    break;
   }
 
   if (modoDigi==1)
@@ -1158,6 +1225,7 @@ void do_tinyOSD()
  unsigned char aSelNum; 
  unsigned char vol[3];
 
+ //Serial.printf("do_tinyOSD\r\n");
  if (checkAndCleanKey(KEY_F1))
  {
   gb_show_osd_main_menu= 1;
@@ -1202,4 +1270,3 @@ void do_tinyOSD()
   //#endif 
  }
 }
-
