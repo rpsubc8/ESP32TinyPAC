@@ -57,6 +57,8 @@
  volatile unsigned short int gb_ct_Pulse[3]={0,0,0};
  volatile unsigned char gb_flip[3]={0,0,0};
  volatile unsigned char gb_dac_vol=50;
+ unsigned char gb_use_sound_digital=0;
+ unsigned char gb_mute=0;
 #endif
 
 //#ifdef use_lib_sound_ay8912
@@ -824,7 +826,7 @@ void setup()
     dac_output_enable(DAC_CHANNEL_1);
    #else
     dac_output_enable(DAC_CHANNEL_2);
-   #endif 
+   #endif    
   #else 
    pinMode(SPEAKER_PIN, OUTPUT);
   #endif 

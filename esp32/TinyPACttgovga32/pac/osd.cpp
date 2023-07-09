@@ -469,6 +469,9 @@ unsigned char ShowTinyMenu(const char *cadTitle,const char **ptrValue,unsigned c
    #endif
 
 
+   if (checkAndCleanKey(KEY_F1))
+   {
+   }
    if (checkAndCleanKey(KEY_CURSOR_LEFT))
    {
     if (aReturn>10) aReturn-=10;
@@ -619,7 +622,8 @@ void ShowTinyKeyboardPollMenu()
 
 
  #ifdef use_lib_sound_dac
-  static const unsigned char gb_sin[256]={
+  
+  const static DRAM_ATTR unsigned char gb_sin[256]={
    0x40,0x2E,0x1D,0x06,0x00,0x05,0x0E,0x1C,0x3E,0x50,0x6E,0x79,0x7E,0x7B,0x72,0x55,
    0x43,0x31,0x12,0x07,0x00,0x04,0x0C,0x29,0x3A,0x5D,0x6C,0x77,0x7F,0x7C,0x67,0x58,
    0x34,0x23,0x14,0x02,0x00,0x0A,0x16,0x26,0x49,0x5A,0x75,0x7D,0x7F,0x76,0x6A,0x4A,
@@ -636,7 +640,32 @@ void ShowTinyKeyboardPollMenu()
    0x09,0x02,0x02,0x0A,0x25,0x36,0x48,0x69,0x75,0x7F,0x7D,0x76,0x5C,0x4B,0x27,0x18,
    0x03,0x00,0x01,0x13,0x22,0x45,0x56,0x66,0x7B,0x7F,0x78,0x6D,0x5F,0x3C,0x2A,0x0D,
    0x04,0x00,0x06,0x11,0x2F,0x41,0x53,0x71,0x7A,0x7F,0x79,0x70,0x51,0x40,0x1D,0x0F
-  };
+  }; //Multiplicado por 64 y previo sumado 1 sin signo
+
+
+  /*
+  const static DRAM_ATTR unsigned char gb_sin[256]={
+   150,108,69,14,1,12,34,66,146,188,3,28,41,33,11,199,
+   157,115,42,17,0,9,29,96,138,220,254,24,43,35,243,206,
+   123,83,48,5,0,25,53,89,172,213,20,37,43,20,249,173,
+   131,90,25,7,4,20,47,122,164,242,15,35,40,24,221,181,
+   98,60,30,0,2,41,75,114,198,235,32,43,41,4,228,147,
+   105,67,13,1,13,36,68,148,190,5,29,41,32,10,196,155,
+   74,40,16,0,10,61,99,140,222,0,40,43,34,241,204,120,
+   81,46,4,0,26,55,91,175,215,21,38,43,19,247,171,128,
+   52,24,6,5,22,84,124,167,244,17,43,39,23,218,179,95,
+   58,29,0,3,43,77,117,200,238,33,43,41,3,225,144,103,
+   33,12,1,14,38,109,151,193,7,30,42,30,8,194,152,71,
+   39,15,0,11,63,101,143,224,2,41,43,34,239,202,118,78,
+   19,3,0,28,57,135,177,217,22,39,36,18,245,168,126,50,
+   23,5,6,23,86,127,169,246,18,43,38,22,216,176,93,56,
+   8,0,4,45,79,161,203,240,34,43,26,1,223,142,100,32,
+   10,0,15,40,111,153,195,9,31,42,29,6,191,150,69,37
+  };//Multiplicado por 150 y previo sumado 1 sin signo
+  */
+
+
+
 
   volatile unsigned int gb_contador_muestra=0;
 
@@ -687,8 +716,8 @@ void ShowTinyKeyboardPollMenu()
    {
     case 1: media= media>>1; break; //25%
     //case 2: media= media; break; //50%
-    case 3: media= media<<1; break;
-    case 4: media= media<<2; break; //100%
+    case 3: media= (media>127) ? 255 : (media<<1); break;//75%     
+    case 4: media= (media>63) ? 255 : (media<<2); break; //100%    
    }
    gb_spk_data= media;    
   }
@@ -717,21 +746,27 @@ void ShowTinySoundMenu()
  #ifdef use_lib_sound_dac 
   switch (aSelNum)
   {
-   case 0: gb_sillence_all= 0; modoDigi= 1; break;
-   case 1: gb_sillence_all= 1; modoDigi= 1; break;
-   case 2: gb_dac_vol= 4; gb_sillence_all= 0; modoDAC= 1; break;
-   case 3: gb_dac_vol= 3; gb_sillence_all= 0; modoDAC= 1; break;
-   case 4: gb_dac_vol= 2; gb_sillence_all= 0; modoDAC= 1; break;
-   case 5: gb_dac_vol= 1; gb_sillence_all= 0; modoDAC= 1; break;
-   case 6: gb_sillence_all= 1; modoDAC= 1; break;
+   case 0: gb_sillence_all= 0; gb_mute= 0; modoDigi= 1; break;
+   case 1: gb_sillence_all= 1; gb_mute= 1;  modoDigi= 1; break;
+   case 2: gb_dac_vol= 4; gb_sillence_all= 0; gb_mute= 0; modoDAC= 1; break;
+   case 3: gb_dac_vol= 3; gb_sillence_all= 0; gb_mute= 0; modoDAC= 1; break;
+   case 4: gb_dac_vol= 2; gb_sillence_all= 0; gb_mute= 0; modoDAC= 1; break;
+   case 5: gb_dac_vol= 1; gb_sillence_all= 0; gb_mute= 0; modoDAC= 1; break;
+   case 6: gb_sillence_all= 1; gb_mute= 1; modoDAC= 1; break;
   }
 
   if (modoDigi==1)
   {
+   gb_use_sound_digital= 1;
    timerAlarmDisable(gb_timerSound);   
    delay(100);       
    timerDetachInterrupt(gb_timerSound);
    delay(100);
+   #ifdef SPEAKER_PIN == 25
+    dac_output_disable(DAC_CHANNEL_1);
+   #else 
+    dac_output_disable(DAC_CHANNEL_2);
+   #endif 
 
    pinMode(SPEAKER_PIN, OUTPUT);
    timerAttachInterrupt(gb_timerSound, &onTimerSoundDigital, true);
@@ -742,6 +777,7 @@ void ShowTinySoundMenu()
   {
    if (modoDAC==1)
    {
+    gb_use_sound_digital= 0;
     timerAlarmDisable(gb_timerSound);   
     delay(100);       
     timerDetachInterrupt(gb_timerSound);
@@ -761,10 +797,11 @@ void ShowTinySoundMenu()
   //Digital solo tiene
   //Digital ON
   //Digital OFF
+  gb_use_sound_digital= 1;
   switch (aSelNum)
   {
-   case 0: gb_sillence_all= 0; break;
-   case 1: gb_sillence_all= 1; break;
+   case 0: gb_sillence_all= 0; gb_mute= 0; break;
+   case 1: gb_sillence_all= 1; gb_mute= 1; break;
   }
  #endif
 }
@@ -1124,19 +1161,18 @@ void do_tinyOSD()
  if (checkAndCleanKey(KEY_F1))
  {
   gb_show_osd_main_menu= 1;
-  return;
- }
-
-
- for (unsigned char i=0;i<3;i++)
- {
-  vol[i]= gbVolMixer_now[i];
-  gbVolMixer_now[i]= 0;
  }
 
  if (gb_show_osd_main_menu == 1)
  {
-  //gb_sillence_all=1; //silencio= 1; //silencio  
+  for (unsigned char i=0;i<3;i++)
+  {
+   vol[i]= gbVolMixer_now[i];
+   gbVolMixer_now[i]= 0;
+  }
+
+  
+  gb_sillence_all=1; //silencio= 1; //silencio  
 
   aSelNum = ShowTinyMenu("MAIN MENU",gb_main_menu,max_gb_main_menu,-1);
   switch (aSelNum)
@@ -1150,19 +1186,20 @@ void do_tinyOSD()
    case 6: ShowTinySoundMenu(); break;
   }   
   gb_show_osd_main_menu=0; 
- }
-
- SDLClear();
- //SDLSetBorder(); //TRuco rapido borde color
- //gb_sillence_all= 0;
- for (unsigned char i=0;i<3;i++)
- {
-  gbVolMixer_now[i]= vol[i];  
- } 
-
  
- //#ifdef use_lib_sound_ay8912
- // gb_silence_all_channels = 0;
- //#endif 
+
+  SDLClear();
+  //SDLSetBorder(); //TRuco rapido borde color 
+  for (unsigned char i=0;i<3;i++)
+  {
+   gbVolMixer_now[i]= vol[i];  
+  }
+  
+  gb_sillence_all= (gb_mute == 1) ? 1 : 0;  
+ 
+  //#ifdef use_lib_sound_ay8912
+  // gb_silence_all_channels = 0;
+  //#endif 
+ }
 }
 

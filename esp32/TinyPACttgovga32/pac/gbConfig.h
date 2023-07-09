@@ -1,6 +1,9 @@
 #ifndef _GB_CONFIG
  #define _GB_CONFIG
 
+ //Fixes error keyboards not initializing (solution dcrespo3D)
+ //#define FIX_PERIBOARD_NOT_INITING
+
  //Sound
  //#define use_lib_sound_ay8912
  #define use_lib_sound_digital

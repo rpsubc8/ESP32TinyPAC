@@ -647,19 +647,42 @@ static inline void sound_update(pac* const p)
  //#endif 
 
  #ifdef use_lib_sound_digital
+  //unsigned int auxFrec[3];
   for (unsigned char i=0;i<3;i++)      
   {
    unsigned int frec= p->sound_chip.voices[i].frequency;
-   #ifdef use_lib_sound_dac
-    frec= frec>>6; //Para DAC analogico
-   #else 
-    frec= frec>>4; //Para pulsos digitales   
-   #endif   
+   if (gb_use_sound_digital==1)
+   {
+    frec= frec>>4; //Para pulsos digitales    
+    //auxFrec[i]= frec;
+    //frec= (frec>3999) ? 3999 : 0; //recorte     
+   }
+   else
+   {
+    #ifdef use_lib_sound_dac
+     frec= frec>>6; //Para DAC analogico
+     //frec= (frec>3999) ? 3999 : 0; //recorte
+     //if (frec>124){
+     // frec= 124;
+     //}
+     //auxFrec[i]= frec;
+    #endif    
+   }
+   
+   
    gbFrecMixer_now[i]= frec;
    gbVolMixer_now[i]= ((p->sound_chip.voices[i].frequency>0)&&(p->sound_chip.voices[i].volume>0)) ? 15 : 0;   
    //gb_ct_Pulse[i]= ((gbFrecMixer_now[i]>0)&&(gbVolMixer_now[i]>0)) ? (unsigned int)((10000 / gbFrecMixer_now[i]))>>1 : 0; //10000 Hz
-   gb_ct_Pulse[i]= ((gbFrecMixer_now[i]>0)&&(gbVolMixer_now[i]>0)) ? (unsigned int)((8000 / gbFrecMixer_now[i]))>>1 : 0; //8000 Hz
-  }
+   if (gb_use_sound_digital==1)
+   {
+    gb_ct_Pulse[i]= ((gbFrecMixer_now[i]>0)&&(gbVolMixer_now[i]>0)) ? (unsigned int)((8000 / gbFrecMixer_now[i]))>>1 : 0; //8000 Hz
+   }
+  }  
+  //Serial.printf(" %d %d  %d %d  %d %d\r\n",
+  // p->sound_chip.voices[0].frequency,auxFrec[0],
+  // p->sound_chip.voices[1].frequency,auxFrec[1],
+  // p->sound_chip.voices[2].frequency,auxFrec[2]
+  // );
    
  #endif
   /*
