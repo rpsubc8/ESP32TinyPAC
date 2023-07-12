@@ -129,6 +129,7 @@ uint8_t* gb_pac_ptr_tiles;
 uint8_t* gb_pac_ptr_sprites;
 uint8_t* gb_pac_ptr_tile_rom;
 uint8_t* gb_pac_ptr_sprite_rom;
+const unsigned char* gb_pac_ptr_palette_rom;
 const unsigned char* gb_ptr_id_rom[4]; //4 punteros a la rom
 const unsigned char *gb_ptr_rom_82s1237f;
 
@@ -146,6 +147,7 @@ unsigned int gb_fps_max=0;
 unsigned int gb_fps_med=0;
 unsigned int gb_fps_time_cur=0;
 unsigned int gb_fps_time_last=0;
+unsigned int gb_fps_real_vga=0;
 
 
 unsigned char ** gb_buffer_vga;
@@ -181,6 +183,8 @@ static uint32_t dt = 0;
  char gb_buf_uart[BUFFER_SIZE_UART];
  unsigned char gb_rlen_uart=0;
  unsigned char gb_current_ms_poll_keyboard_uart= 10;
+ unsigned int gb_curTime_keyboard_uart=0;
+ unsigned int gb_curTime_keyboard_before_uart=0;
 #endif
 
 
@@ -618,18 +622,27 @@ static void mainloop(void)
  gb_keyboard_time_cur= millis();
  if ((gb_keyboard_time_cur-gb_keyboard_time_last)>=(gb_keyboard_cur_poll_ms-1))
  {
-  gb_keyboard_time_last= gb_keyboard_time_cur;                                                   
-  keyboardLoop();
-  
-  #ifdef use_lib_keyboard_uart       
-   keyboard_uart_poll();
-   do_keyboard_uart();
-  #endif
+  gb_keyboard_time_last= gb_keyboard_time_cur;
+  keyboardLoop();  
  }
 
+ #ifdef use_lib_keyboard_uart  
+  gb_curTime_keyboard_uart= millis();
+  if ((gb_curTime_keyboard_uart-gb_curTime_keyboard_before_uart)>=gb_current_ms_poll_keyboard_uart)
+  {   
+   gb_curTime_keyboard_before_uart= gb_curTime_keyboard_uart;   
+   keyboard_uart_poll();       
+  }
+  do_keyboard_uart();
+ #endif 
+
+
  if (gb_show_osd_main_menu == 1)
- {
+ {  
   do_tinyOSD();
+  current_time = millis(); //Evita aceleracion emu al salir del OSD
+  last_time= current_time;
+  dt = current_time - last_time;  
  }
  
  /*
@@ -647,6 +660,7 @@ static void mainloop(void)
    pac_update(p, dt * (unsigned int)gb_speed);   
   }
 
+
    gb_fps_time_cur= millis();
    unsigned int auxTime= (gb_fps_time_cur - gb_fps_time_last);
    if (auxTime >= 999)
@@ -654,9 +668,10 @@ static void mainloop(void)
     gb_fps_time_last= gb_fps_time_cur;
     if (gb_show_fps == 1)
     {
-     Serial.printf("FPS %d\r\n",gb_fps_cur);
+     Serial.printf("FPS %d %d\r\n",gb_fps_cur,gb_fps_real_vga);
     }
     gb_fps_cur=0;
+    gb_fps_real_vga=0;
     //ShowFPSCall();
    }             
 
@@ -856,7 +871,7 @@ void setup()
  gb_pac_ptr_tile_rom= (uint8_t *)malloc(0x1000);
  gb_pac_ptr_sprite_rom= (uint8_t *)malloc(0x1000);
 
- pac_assign_ptr(p);
+ //pac_assign_ptr(p); //No lo necesito
  
  //Doble buffer
  for (unsigned short int y=0;y<288;y++)

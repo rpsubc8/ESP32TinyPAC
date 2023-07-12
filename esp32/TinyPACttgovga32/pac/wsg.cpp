@@ -1,6 +1,7 @@
  #include "wsg.h" //revisar sonido
 
- void wsg_init(wsg* const w, uint8_t* const sound_rom) //revisar sonido
+ //void wsg_init(wsg* const w, uint8_t* const sound_rom) //revisar sonido
+ void wsg_init(wsg* const w) //revisar sonido
  {  
   for (int voice_no = 0; voice_no < 3; voice_no++) {
     w->voices[voice_no].frequency = 0;
@@ -8,8 +9,8 @@
     w->voices[voice_no].waveform_no = 0;
     w->voices[voice_no].volume = 0;
   }
-  w->sound_rom = sound_rom;
-  w->gain = 25;  
+  //w->sound_rom = sound_rom; //No lo necesito genero frecuencias con oscilador
+  //w->gain = 25; //No lo necesito
  }
 
  void wsg_write(wsg* const w, uint8_t address, uint8_t value)  //revisar sonido

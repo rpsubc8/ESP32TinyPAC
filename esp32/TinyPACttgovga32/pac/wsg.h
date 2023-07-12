@@ -19,11 +19,12 @@ typedef struct wsg_voice
 typedef struct wsg 
 {
   wsg_voice voices[3];
-  uint8_t* sound_rom;
-  int gain;
+  //uint8_t* sound_rom; //No lo necesito genero frecuencias con oscilador
+  //int gain; //No lo necesito
 } wsg;
 
-void wsg_init(wsg* const w, unsigned char* const sound_rom);
+//void wsg_init(wsg* const w, unsigned char* const sound_rom);
+void wsg_init(wsg* const w);
 void wsg_write(wsg* const w, uint8_t address, uint8_t value);
 void wsg_play(wsg* const w, int16_t* const buffer, int buffer_len);
 

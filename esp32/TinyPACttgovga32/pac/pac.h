@@ -25,18 +25,18 @@ struct pac
   uint8_t sprite_pos[0x10]; // 0x5060-0x506f
 
 //  uint8_t* rom; // 0x0000-0x4000 //Limito la rom a 16384 bytes 0x4000
-  uint8_t* ram; // 0x4000-0x5000  
+//  uint8_t* ram; // 0x4000-0x5000  //Ya no lo necesito esta en gb_pac_ptr_ram
 
   //JJ uint8_t color_rom[32];
   //JJ uint8_t palette_rom[0x100];
 //JJ  uint8_t tile_rom[0x1000];
-  uint8_t* tile_rom;
+  //uint8_t* tile_rom; //No lo necesito lo tengo en gb_pac_ptr_tile_rom
 //JJ  uint8_t sprite_rom[0x1000];
-  uint8_t *sprite_rom;
-  uint8_t sound_rom1[0x100];
-  uint8_t sound_rom2[0x100];  
+  //uint8_t *sprite_rom; //No lo necesito lo tengo en gb_pac_ptr_sprite_rom
+  //uint8_t sound_rom1[0x100]; //No lo necesito, genero frecuencias con oscilador
+  //uint8_t sound_rom2[0x100]; //No lo necesito
   const unsigned char *color_rom; 
-  const unsigned char *palette_rom; 
+  //const unsigned char *palette_rom; //Ya no lo necesito tengo gb_pac_ptr_palette_rom
   //const unsigned char *tile_rom;
   //const unsigned char *sprite_rom;
   //const unsigned char *sound_rom1;
@@ -44,8 +44,8 @@ struct pac
 
 //JJ  uint8_t tiles[256 * 8 * 8]; // to store predecoded tiles 16384 bytes
 //JJ  uint8_t sprites[64 * 16 * 16]; // to store predecoded sprites 16384 bytes
-  uint8_t* tiles; // to store predecoded tiles 16384 bytes
-  uint8_t* sprites; // to store predecoded sprites 16384 bytes  
+  //uint8_t* tiles; // to store predecoded tiles 16384 bytes Esta en gb_pac_ptr_tiles
+  //uint8_t* sprites; // to store predecoded sprites 16384 bytes  Esta en gb_pac_ptr_sprites
 
   uint8_t int_vector;
   bool vblank_enabled;
@@ -78,7 +78,7 @@ void pac_update(pac* const p, unsigned int ms);
 
 //void pac_cheat_invincibility(pac* const p);
 
-void pac_assign_ptr(pac* const p);
+//void pac_assign_ptr(pac* const p);
 
 //#ifdef use_lib_sound_ay8912
 // void sound_cycleFabgl(void);

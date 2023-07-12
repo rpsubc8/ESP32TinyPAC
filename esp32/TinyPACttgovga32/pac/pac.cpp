@@ -26,7 +26,7 @@ static uint8_t rb(void* userdata, uint16_t addr)
    return gb_ptr_id_rom[id][(addr & 0x0FFF)]; //MOD 4096
    //JJ return p->rom[addr];
   } else if (addr < 0x5000) {
-    return p->ram[addr - 0x4000];
+    return gb_pac_ptr_ram[addr - 0x4000]; //return p->ram[addr - 0x4000];
   } else if (addr <= 0x50ff) { // io
     if (addr == 0x5003) {
       return p->flip_screen;
@@ -74,7 +74,7 @@ static void wb(void* userdata, uint16_t addr, uint8_t val)
   if (addr < 0x4000) {
     // cannot write to rom
   } else if (addr < 0x5000) {
-    p->ram[addr - 0x4000] = val;
+    gb_pac_ptr_ram[addr - 0x4000] = val; //p->ram[addr - 0x4000] = val;
   } else if (addr <= 0x50ff) { // io
     if (addr == 0x5000) {
       p->vblank_enabled = val & 1;
@@ -161,6 +161,7 @@ static inline int load_file(
 // following that pattern: 0bBBGGGRRR.
 // Each color component corresponds to a color intensity.
 // @TODO: add comment on how to get from color intensity to RGB color.
+/*No se usa
 static inline void get_color(pac* const p, uint8_t color_no, uint8_t* r, uint8_t* g, uint8_t* b) 
 {
   const uint8_t data = p->color_rom[color_no];
@@ -170,8 +171,9 @@ static inline void get_color(pac* const p, uint8_t color_no, uint8_t* r, uint8_t
        ((data >> 5) & 1) * 0x97;
   *b = ((data >> 6) & 1) * 0x51 + ((data >> 7) & 1) * 0xae;
 }
+*/
 
-
+/* No se usa
 inline unsigned char jj_get_color(pac* const p,unsigned char idColor)
 {
 // unsigned char data;
@@ -202,15 +204,19 @@ inline unsigned char jj_get_color(pac* const p,unsigned char idColor)
  
  return (gb_jj_color[idColor]);
 }
+*/
 
 // Color palettes are defined in palette_rom (82s126.4a): each palette contains
 // four colors (one byte for each color).
-static inline void get_palette(pac* const p, uint8_t pal_no, uint8_t* pal) {
+//static inline void get_palette(pac* const p, uint8_t pal_no, uint8_t* pal) 
+static inline void get_palette(uint8_t pal_no, uint8_t* pal) 
+{
   pal_no &= 0x3f;
-  pal[0] = p->palette_rom[pal_no * 4 + 0];
-  pal[1] = p->palette_rom[pal_no * 4 + 1];
-  pal[2] = p->palette_rom[pal_no * 4 + 2];
-  pal[3] = p->palette_rom[pal_no * 4 + 3];
+  unsigned char auxOfs= (pal_no<<2);  
+  pal[0] = gb_pac_ptr_palette_rom[auxOfs++]; //pal[0] = p->palette_rom[pal_no * 4 + 0];
+  pal[1] = gb_pac_ptr_palette_rom[auxOfs++]; //pal[1] = p->palette_rom[pal_no * 4 + 1];
+  pal[2] = gb_pac_ptr_palette_rom[auxOfs++]; //pal[2] = p->palette_rom[pal_no * 4 + 2];
+  pal[3] = gb_pac_ptr_palette_rom[auxOfs];//pal[3] = p->palette_rom[pal_no * 4 + 3];
 }
 
 // decodes a strip from pacman tile/sprite roms to a bitmap output where each
@@ -243,11 +249,11 @@ static inline void preload_images(pac* const p) {
   const int NB_PIXELS_PER_TILE = 8 * 8;
   const int TILE_WIDTH = 8;
   const int NB_TILES = 256;
-  memset(p->tiles, 0, NB_TILES * NB_PIXELS_PER_TILE); //Ahorro 16 KB ya no lo necesito
+  memset(gb_pac_ptr_tiles, 0, NB_TILES * NB_PIXELS_PER_TILE); //memset(p->tiles, 0, NB_TILES * NB_PIXELS_PER_TILE); //Ahorro 16 KB ya no lo necesito
   for (int i = 0; i < NB_TILES; i++) 
   {
-    uint8_t* const tile = &p->tiles[i * NB_PIXELS_PER_TILE];
-    uint8_t* const rom = &p->tile_rom[i * (LEN_STRIP_BYTES * 2)];
+    uint8_t* const tile = &gb_pac_ptr_tiles[i * NB_PIXELS_PER_TILE]; //uint8_t* const tile = &p->tiles[i * NB_PIXELS_PER_TILE];
+    uint8_t* const rom = &gb_pac_ptr_tile_rom[i * (LEN_STRIP_BYTES * 2)]; //uint8_t* const rom = &p->tile_rom[i * (LEN_STRIP_BYTES * 2)];
 
     decode_strip(p, rom + 0, tile, 0, 4, TILE_WIDTH);
     decode_strip(p, rom + 8, tile, 0, 0, TILE_WIDTH);
@@ -257,10 +263,10 @@ static inline void preload_images(pac* const p) {
   const int NB_PIXELS_PER_SPRITE = 16 * 16;
   const int SPRITE_WIDTH = 16;
   const int NB_SPRITES = 64;
-  memset(p->sprites, 0, NB_SPRITES * NB_PIXELS_PER_SPRITE);
+  memset(gb_pac_ptr_sprites, 0, NB_SPRITES * NB_PIXELS_PER_SPRITE); //memset(p->sprites, 0, NB_SPRITES * NB_PIXELS_PER_SPRITE);
   for (int i = 0; i < NB_SPRITES; i++) {
-    uint8_t* const sprite = &p->sprites[i * NB_PIXELS_PER_SPRITE];
-    unsigned char* const rom = &p->sprite_rom[i * (LEN_STRIP_BYTES * 8)];
+    uint8_t* const sprite = &gb_pac_ptr_sprites[i * NB_PIXELS_PER_SPRITE]; //uint8_t* const sprite = &p->sprites[i * NB_PIXELS_PER_SPRITE];
+    unsigned char* const rom = &gb_pac_ptr_sprite_rom[i * (LEN_STRIP_BYTES<<3)]; //unsigned char* const rom = &p->sprite_rom[i * (LEN_STRIP_BYTES * 8)];
 
     decode_strip(p, rom + 0 * 8, sprite, 8, 12, SPRITE_WIDTH);
     decode_strip(p, rom + 1 * 8, sprite, 8, 0, SPRITE_WIDTH);
@@ -275,7 +281,8 @@ static inline void preload_images(pac* const p) {
 }
 
 //JJ static inline void draw_tile(pac* const p, uint8_t tile_no, uint8_t* pal, uint16_t x, uint16_t y) 
-static inline void draw_tile(pac* const p, unsigned char tile_no, uint8_t* pal, unsigned short int x, unsigned short int y) 
+//static inline void draw_tile(pac* const p, unsigned char tile_no, uint8_t* pal, unsigned short int x, unsigned short int y) 
+static inline void draw_tile(unsigned char tile_no, uint8_t* pal, unsigned short int x, unsigned short int y) 
 {       
  //short int px, py;
  unsigned char color;
@@ -294,7 +301,7 @@ static inline void draw_tile(pac* const p, unsigned char tile_no, uint8_t* pal, 
   //screenbuf_pos= (224 * (y+j)) + x;
   for (unsigned char i=0;i<8;i++)
   {
-   color = p->tiles[ofsTile++];
+   color = gb_pac_ptr_tiles[ofsTile++]; //color = p->tiles[ofsTile++];
    //gb_jj_screen[screenbuf_pos++]= gb_jj_color[(pal[color])]; //Ya no se necesita gb_jj_screen
 
    //gb_buffer_vga[(y+j)][(x+i)^2]= gb_color_vga[ gb_jj_color[(pal[color])] ];
@@ -399,7 +406,7 @@ static inline void draw_sprite(pac* const p, unsigned char sprite_no, uint8_t* p
     unsigned char py = i>>4; //JJ int py = i / 16;
 
     //JJ unsigned char color = p->sprites[sprite_no * 256 + i];
-    unsigned char color = p->sprites[((unsigned short int)sprite_no << 8) + i];
+    unsigned char color = gb_pac_ptr_sprites[((unsigned short int)sprite_no << 8) + i]; //unsigned char color = p->sprites[((unsigned short int)sprite_no << 8) + i];
 
     // color 0 is transparent
     if (pal[color] == 0) {
@@ -453,8 +460,8 @@ static inline void pac_draw(pac* const p)
     const unsigned char tile_no = rb(p, i);
     const unsigned char palette_no = rb(p, i + 0x400);
 
-    get_palette(p, palette_no, palette);
-    draw_tile(p, tile_no, palette, ((x - 2) << 3), (y<<3));
+    get_palette(palette_no, palette); //get_palette(p, palette_no, palette);
+    draw_tile(tile_no, palette, ((x - 2) << 3), (y<<3));//draw_tile(p, tile_no, palette, ((x - 2) << 3), (y<<3));
 
     i += 1;
     if (x == 0) 
@@ -478,8 +485,8 @@ static inline void pac_draw(pac* const p)
     const unsigned char tile_no = rb(p, i);
     const unsigned char palette_no = rb(p, i + 0x400);
 
-    get_palette(p, palette_no, palette);
-    draw_tile(p, tile_no, palette, ((x - 2)<<3), (y<<3));
+    get_palette(palette_no, palette);//get_palette(p, palette_no, palette);
+    draw_tile(tile_no, palette, ((x - 2)<<3), (y<<3)); //draw_tile(p, tile_no, palette, ((x - 2)<<3), (y<<3));
     i-= 32;
    }
    addrIni++;
@@ -494,8 +501,8 @@ static inline void pac_draw(pac* const p)
     const unsigned char tile_no = rb(p, i);
     const unsigned char palette_no = rb(p, i + 0x400);
 
-    get_palette(p, palette_no, palette);
-    draw_tile(p, tile_no, palette, ((x - 2)<<3), (y<<3));
+    get_palette(palette_no, palette);//get_palette(p, palette_no, palette);
+    draw_tile(tile_no, palette, ((x - 2)<<3), (y<<3)); //draw_tile(p, tile_no, palette, ((x - 2)<<3), (y<<3));
 
     i += 1;
     if (x == 0) 
@@ -524,7 +531,7 @@ static inline void pac_draw(pac* const p)
     const bool flip_y = (sprite_info >> 0) & 1;
     const unsigned char sprite_no = sprite_info >> 2;
 
-    get_palette(p, palette_no, palette);
+    get_palette(palette_no, palette); //get_palette(p, palette_no, palette);
     draw_sprite(p, sprite_no, palette, x, y, flip_x, flip_y);
   }
 
@@ -653,14 +660,17 @@ static inline void sound_update(pac* const p)
    unsigned int frec= p->sound_chip.voices[i].frequency;
    if (gb_use_sound_digital==1)
    {
-    frec= frec>>4; //Para pulsos digitales    
+    frec= (i==0) ? (frec>>4) : (frec>>5); //Para pulsos digitales    
+    //frec= (frec>>4);
     //auxFrec[i]= frec;
     //frec= (frec>3999) ? 3999 : 0; //recorte     
    }
    else
    {
     #ifdef use_lib_sound_dac
-     frec= frec>>6; //Para DAC analogico
+     //frec= frec>>6; //Para DAC analogico seno precalculado 256
+     frec= (i==0) ? (frec>>2) : (frec>>3);//Para DAC analogico seno 360
+     //frec= frec>>1; //Si usaramos seno exacto 360 con double Para DAC analogico
      //frec= (frec>3999) ? 3999 : 0; //recorte
      //if (frec>124){
      // frec= 124;
@@ -703,15 +713,15 @@ static inline void sound_update(pac* const p)
   */
 }
 
-void pac_assign_ptr(pac* const p)
-{
+//void pac_assign_ptr(pac* const p)
+//{
 // p->rom= gb_pac_ptr_rom;  //Ya no lo necesito apunto a FLASH
- p->ram= gb_pac_ptr_ram;
- p->tiles= gb_pac_ptr_tiles;
- p->sprites= gb_pac_ptr_sprites;
- p->tile_rom= gb_pac_ptr_tile_rom;
- p->sprite_rom= gb_pac_ptr_sprite_rom;
-}
+ //p->ram= gb_pac_ptr_ram; //No lo necesito
+ //p->tiles= gb_pac_ptr_tiles; // No lo necesito
+ //p->sprites= gb_pac_ptr_sprites; //No lo necesito
+ //p->tile_rom= gb_pac_ptr_tile_rom; //No lo necesito
+ //p->sprite_rom= gb_pac_ptr_sprite_rom; //No lo necesito
+//}
 
 //JJ int pac_init(pac* const p) 
 void pac_init(pac* const p) 
@@ -732,7 +742,7 @@ void pac_init(pac* const p)
 //JJ  memset(p->rom, 0, sizeof(p->rom));
 //JJ   memset(p->rom, 0, 0x4000);  //Ya no inicializo, apunto directamente a FLASH
 //JJ  memset(p->ram, 0, sizeof(p->ram));
-  memset(p->ram, 0, 0x1000);
+  memset(gb_pac_ptr_ram, 0, 0x1000); //memset(p->ram, 0, 0x1000); //No lo necesito
   memset(p->sprite_pos, 0, sizeof(p->sprite_pos));
 //JJ  memset(p->screen_buffer, 0, sizeof(p->screen_buffer)); //Ya no lo necesito
   
@@ -786,12 +796,12 @@ void pac_init(pac* const p)
    gb_jj_color[i]= (b<<4)|(g<<2)|(r&0x03)|gb_sync_bits; //invierto BBGGRR revisar
   }
   //memcpy(p->palette_rom, gb_rom_82s1264a, 0x100);
-  p->palette_rom= gb_rom_82s1264a;
-  memcpy(p->tile_rom, gb_rom_pacman5e, 0x1000);
+  gb_pac_ptr_palette_rom= gb_rom_82s1264a; //p->palette_rom= gb_rom_82s1264a;
+  memcpy(gb_pac_ptr_tile_rom, gb_rom_pacman5e, 0x1000); //memcpy(p->tile_rom, gb_rom_pacman5e, 0x1000);
   //p->tile_rom= gb_rom_pacman5e;
-  memcpy(p->sprite_rom, gb_rom_pacman5f, 0x1000);
+  memcpy(gb_pac_ptr_sprite_rom, gb_rom_pacman5f, 0x1000); //memcpy(p->sprite_rom, gb_rom_pacman5f, 0x1000);
   //p->sprite_rom= gb_rom_pacman5f;
-  memcpy(p->sound_rom1, gb_rom_82s1261m, 0x100);
+  //memcpy(p->sound_rom1, gb_rom_82s1261m, 0x100); //No lo necesito genero frecuencias con oscilador
   //p->sound_rom1= gb_rom_82s1261m;
   
   /*JJ Antes se leia desde ficheros
@@ -851,7 +861,7 @@ void pac_init(pac* const p)
   //p->update_screen = NULL;
 
   // audio
-  wsg_init(&p->sound_chip, p->sound_rom1); //revisar sonido
+  wsg_init(&p->sound_chip); //revisar sonido //wsg_init(&p->sound_chip, p->sound_rom1); //revisar sonido
   //JJ p->audio_buffer_len = WSG_SAMPLE_RATE / PAC_FPS; //revisar sonido
   //JJ p->audio_buffer = (int16_t *) calloc(p->audio_buffer_len, sizeof(int16_t));
   //JJ p->sample_rate = 44100; //revisar sonido
@@ -887,16 +897,18 @@ void pac_update(pac* const p, unsigned int ms)
       p->cpu.cyc -= PAC_CYCLES_PER_FRAME;
 
       // trigger vblank if enabled:
-      if (p->vblank_enabled) {
+      if (p->vblank_enabled)
+      {
         // p->vblank_enabled = 0;
         z80_gen_int(&p->cpu, p->int_vector);
 
         gb_vga_time_cur= millis();
         //if ((gb_fps_cur & 0x01) == 0)
-        if ((gb_vga_time_last-gb_vga_time_cur) >= (gb_vga_cur_poll_ms-1))
+        if ((gb_vga_time_cur-gb_vga_time_last) >= (gb_vga_cur_poll_ms-1))
         {//skip frame temporal
          gb_vga_time_last= gb_vga_time_cur;
          pac_draw(p);
+         gb_fps_real_vga++;
         }
         //p->update_screen(p);
         sound_update(p);

@@ -63,6 +63,7 @@
  extern uint8_t* gb_pac_ptr_sprites;
  extern uint8_t* gb_pac_ptr_tile_rom;
  extern uint8_t* gb_pac_ptr_sprite_rom;
+ extern const unsigned char* gb_pac_ptr_palette_rom;
  extern const unsigned char* gb_ptr_id_rom[4]; //4 punteros a la rom 0x4000
  extern const unsigned char *gb_ptr_rom_82s1237f;
 
@@ -101,6 +102,7 @@
  extern unsigned int gb_fps_med;
  extern unsigned int gb_fps_time_cur;
  extern unsigned int gb_fps_time_last;
+ extern unsigned int gb_fps_real_vga;
  
  extern unsigned int gb_keyboard_time_cur;
  extern unsigned int gb_keyboard_time_last;  

@@ -705,7 +705,8 @@ static inline void process_interrupts(z80* const z) {
 // MARK: interface
 // initialises a z80 struct. Note that read_byte, write_byte, port_in, port_out
 // and userdata must be manually set by the user afterwards.
-void z80_init(z80* const z) {
+void z80_init(z80* const z) 
+{
   z->read_byte = NULL;
   z->write_byte = NULL;
   z->port_in = NULL;
