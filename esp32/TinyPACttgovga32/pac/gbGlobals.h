@@ -64,6 +64,19 @@
  extern uint8_t* gb_pac_ptr_tile_rom;
  extern uint8_t* gb_pac_ptr_sprite_rom;
  extern const unsigned char* gb_pac_ptr_palette_rom;
+ extern uint8_t gb_pac_sprite_pos[0x10];
+ extern bool gb_pac_flip_screen;
+ extern unsigned char gb_pac_p1_up;
+ extern unsigned char gb_pac_p1_left;
+ extern unsigned char gb_pac_p1_right;
+ extern unsigned char gb_pac_p1_down;
+ extern unsigned char gb_pac_coin_s1;
+ extern unsigned char gb_pac_coin_s2;
+ extern unsigned char gb_pac_rack_advance;
+ extern unsigned char gb_pac_credits_btn;
+ extern unsigned char gb_pac_board_test;
+ extern unsigned char gb_pac_p1_start;
+ extern unsigned char gb_pac_p2_start;
  extern const unsigned char* gb_ptr_id_rom[4]; //4 punteros a la rom 0x4000
  extern const unsigned char *gb_ptr_rom_82s1237f;
 

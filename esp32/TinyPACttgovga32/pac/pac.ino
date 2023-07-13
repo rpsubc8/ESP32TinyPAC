@@ -35,7 +35,7 @@
 #include <stdbool.h>
 //#include <time.h> //no lo necesito
 
-#include "pac.h"
+#include "paccpp.h"
 #include "osd.h"
 
 #include <Arduino.h>
@@ -130,6 +130,19 @@ uint8_t* gb_pac_ptr_sprites;
 uint8_t* gb_pac_ptr_tile_rom;
 uint8_t* gb_pac_ptr_sprite_rom;
 const unsigned char* gb_pac_ptr_palette_rom;
+uint8_t gb_pac_sprite_pos[0x10];
+bool gb_pac_flip_screen=0;
+unsigned char gb_pac_p1_up=0;
+unsigned char gb_pac_p1_left=0;
+unsigned char gb_pac_p1_right=0;
+unsigned char gb_pac_p1_down=0;
+unsigned char gb_pac_coin_s1=0;
+unsigned char gb_pac_coin_s2=0;
+unsigned char gb_pac_rack_advance=0;
+unsigned char gb_pac_credits_btn=0;
+unsigned char gb_pac_board_test=0;
+unsigned char gb_pac_p1_start=0;
+unsigned char gb_pac_p2_start=0;
 const unsigned char* gb_ptr_id_rom[4]; //4 punteros a la rom
 const unsigned char *gb_ptr_rom_82s1237f;
 
@@ -375,21 +388,21 @@ void PreparaPaleta()
           //IO_keyboard_matrix_[0]&= 0x7F;
           //IO_keyboard_matrix_[6]&= 0xBF;
           //arriba 1B 5B 41
-          p->p1_up= 1;
+          gb_pac_p1_up= 1;
           break;
          case 0x42: 
           //keyboard[4]&= 0xEF;  //kempston abajo //SHIFT + 6
-          p->p1_down= 1;
+          gb_pac_p1_down= 1;
           break; //abajo 1B 5B 42
          case 0x43: 
           //keyboard[4]&= 0xFB; //derecha 1B 5B 43 //SHIFT + 8
-          p->p1_right= 1;
+          gb_pac_p1_right= 1;
           break;
          case 0x44: 
           //keyboard[3]&= 0xEF; //izquierda 1B 5B 44 //SHIFT + 5
           //IO_keyboard_matrix_[0]&= 0xFB;
           //IO_keyboard_matrix_[7]&= 0xFD;          
-          p->p1_left= 1;
+          gb_pac_p1_left= 1;
           break; 
         }
        }
@@ -398,14 +411,14 @@ void PreparaPaleta()
 
      //row0
      //case 0x2D: keyboard[0]&= 0xFE; break; //SHIFT LEFT -
-     case 0x31: p->p1_start= 1; break; //1 start (1p)
-     case 0x32: p->p2_start= 1; break; //2 start (2p)
+     case 0x31: gb_pac_p1_start= 1; break; //1 start (1p)
+     case 0x32: gb_pac_p2_start= 1; break; //2 start (2p)
      //case 0x33: IO_keyboard_matrix_[1]&= 0xFE; break; //3
      //case 0x34: IO_keyboard_matrix_[1]&= 0xF7; break; //4
-     case 0x35: p->coin_s1=1; break; //5 coin (slot 1)   
-     case 0x76: case 0x56: p->coin_s2= 1; break; //V coin (slot 2)
+     case 0x35: gb_pac_coin_s1=1; break; //5 coin (slot 1)   
+     case 0x76: case 0x56: gb_pac_coin_s2= 1; break; //V coin (slot 2)
      case 0x74: case 0x54: 
-      p->board_test= 1; 
+      gb_pac_board_test= 1; 
       //gbVolMixer_now[0]= gbVolMixer_now[1]= gbVolMixer_now[2]= 0; //silencio= 1; //silencio
       break; //T board test
 //     case 0x70: case 0x50: is_paused= ((~is_paused)&0x01); break; //P paused
@@ -475,15 +488,15 @@ void keyboardLoop()
  //p->mute_audio= 0;
  gb_show_osd_main_menu = (!keymap[PS2_KC_F1])&0x01;
 
- p->p1_start= !keymap[PS2_KC_1];
- p->p2_start= !keymap[PS2_KC_2];
- p->coin_s1= !keymap[PS2_KC_5];
- p->coin_s2= !keymap[PS2_KC_V];
- p->board_test= !keymap[PS2_KC_T];
- p->p1_up= !keymap[KEY_CURSOR_UP];
- p->p1_down= !keymap[KEY_CURSOR_DOWN];
- p->p1_left= !keymap[KEY_CURSOR_LEFT];
- p->p1_right= !keymap[KEY_CURSOR_RIGHT];
+ gb_pac_p1_start= !keymap[PS2_KC_1];
+ gb_pac_p2_start= !keymap[PS2_KC_2];
+ gb_pac_coin_s1= !keymap[PS2_KC_5];
+ gb_pac_coin_s2= !keymap[PS2_KC_V];
+ gb_pac_board_test= !keymap[PS2_KC_T];
+ gb_pac_p1_up= !keymap[KEY_CURSOR_UP];
+ gb_pac_p1_down= !keymap[KEY_CURSOR_DOWN];
+ gb_pac_p1_left= !keymap[KEY_CURSOR_LEFT];
+ gb_pac_p1_right= !keymap[KEY_CURSOR_RIGHT];
 
 /*
  if (keymap[PS2_KC_0]==0)

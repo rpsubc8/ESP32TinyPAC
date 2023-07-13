@@ -48,6 +48,7 @@ static const uint8_t cyc_ddfd[256] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 15, 4, 4, 4, 4,
 #define GET_BIT(n, val) (((val) >> (n)) & 1)
 
 static inline uint8_t rb(z80* const z, uint16_t addr) {
+  //revisar quitar z
   return z->read_byte(z->userdata, addr);
 }
 
@@ -56,6 +57,7 @@ static inline void wb(z80* const z, uint16_t addr, uint8_t val) {
 }
 
 static inline uint16_t rw(z80* const z, uint16_t addr) {
+  //revisar quitar z
   return (z->read_byte(z->userdata, addr + 1) << 8) |
          z->read_byte(z->userdata, addr);
 }
