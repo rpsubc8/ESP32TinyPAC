@@ -7,13 +7,18 @@
 #include "gbrompacman6j.h"
 #include "gbrom82s1237f.h"
 #include "gbrom82s1264a.h"
-#include "gbrompacman5e.h"
-#include "gbrompacman5f.h"
+//#include "gbrompacman5e.h" //Ya no se necesita
+//#include "gbrompacman5f.h" //Ya no se necesita
+
+#include "gbdataconvtiles.h"
+#include "gbdataconvsprites.h"
+
 //#include "gbrom82s1261m.h" //No lo necesito uso oscilador
 #include <Arduino.h>
 
 //static uint8_t rb(uint16_t addr) 
-static uint8_t rb(void* userdata, uint16_t addr) 
+//uint8_t paccpp_rb(void* userdata, uint16_t addr) 
+uint8_t paccpp_rb(uint16_t addr) 
 {
   //pac* const p = (pac*) userdata;
 
@@ -64,9 +69,9 @@ static uint8_t rb(void* userdata, uint16_t addr)
   return 0xff;
 }
 
-static void wb(void* userdata, uint16_t addr, uint8_t val) 
+void paccpp_wb(uint16_t addr, uint8_t val)
 {
-  pac* const p = (pac*) userdata;
+  //pac* const p = (pac*) userdata;
 
   // according to https://www.csh.rit.edu/~jerry/arcade/pacman/daves/
   // the highest bit of the address is unused
@@ -78,9 +83,9 @@ static void wb(void* userdata, uint16_t addr, uint8_t val)
     gb_pac_ptr_ram[addr - 0x4000] = val; //p->ram[addr - 0x4000] = val;
   } else if (addr <= 0x50ff) { // io
     if (addr == 0x5000) {
-      p->vblank_enabled = val & 1;
+      gb_pac_vblank_enabled = val & 1; //p->vblank_enabled = val & 1;
     } else if (addr == 0x5001) {
-      p->sound_enabled = val & 1;
+      gb_pac_sound_enabled = val & 1; //p->sound_enabled = val & 1;
     } else if (addr == 0x5002) {
       // aux board?
     } else if (addr == 0x5003) {
@@ -92,7 +97,7 @@ static void wb(void* userdata, uint16_t addr, uint8_t val)
     } else if (addr == 0x5007) {
       // coin counter
     } else if (addr >= 0x5040 && addr <= 0x505f) { // audio
-       wsg_write(&p->sound_chip, addr - 0x5040, val); //revisar sonido
+       wsg_write((addr - 0x5040), val); //wsg_write(&p->sound_chip, addr - 0x5040, val); //revisar sonido
     } else if (addr >= 0x5060 && addr <= 0x506f) {
       gb_pac_sprite_pos[addr - 0x5060] = val; //p->sprite_pos[addr - 0x5060] = val;
     } else if (addr >= 0x50c0 && addr <= 0x50ff) {
@@ -115,7 +120,7 @@ inline void port_out(z80* const z, unsigned char port, unsigned char val)
 
   // setting the interrupt vector
   if (port == 0) {
-    p->int_vector = val;
+    gb_pac_int_vector = val; //p->int_vector = val;
   }
 }
 
@@ -224,6 +229,7 @@ static inline void get_palette(uint8_t pal_no, uint8_t* pal)
 
 // decodes a strip from pacman tile/sprite roms to a bitmap output where each
 // byte represents one pixel.
+/*Ya no se usa, apunta a Flash
 static void decode_strip(pac* const p, uint8_t* const input, uint8_t* const output, int bx, int by, int img_width) 
 {
   const int base_i = by * img_width + bx;
@@ -239,8 +245,10 @@ static void decode_strip(pac* const p, uint8_t* const input, uint8_t* const outp
     }
   }
 }
+*/
 
 // preloads sprites and tiles
+/* Ya no se usa, apunta a Flash convertido
 static void preload_images(pac* const p) {
   // sprites and tiles are images that are stored in sprite/tile rom.
   // in memory, those images are represented using vertical "strips"
@@ -282,6 +290,7 @@ static void preload_images(pac* const p) {
     decode_strip(p, rom + 7 * 8, sprite, 0, 8, SPRITE_WIDTH);
   }
 }
+*/
 
 //JJ static inline void draw_tile(pac* const p, uint8_t tile_no, uint8_t* pal, uint16_t x, uint16_t y) 
 //static inline void draw_tile(pac* const p, unsigned char tile_no, uint8_t* pal, unsigned short int x, unsigned short int y) 
@@ -462,8 +471,8 @@ static void pac_draw(pac* const p)
   i = VRAM_SCREEN_BOT;
   while (x != 31 || y != 36) 
   {
-    const unsigned char tile_no = rb(p, i);
-    const unsigned char palette_no = rb(p, i + 0x400);
+    const unsigned char tile_no = paccpp_rb(i); //paccpp_rb(p, i);
+    const unsigned char palette_no = paccpp_rb(i + 0x400); //paccpp_rb(p, i + 0x400);
 
     palette= (unsigned char *)&gb_pac_ptr_palette_rom[((palette_no & 0x3f)<<2)];  //get_palette(palette_no, palette); //get_palette(p, palette_no, palette);
     xTile= ((x - 2) << 3);
@@ -491,8 +500,8 @@ static void pac_draw(pac* const p)
    i = addrIni;
    for (x=2; x<30; x++)
    {
-    const unsigned char tile_no = rb(p, i);
-    const unsigned char palette_no = rb(p, i + 0x400);
+    const unsigned char tile_no = paccpp_rb(i); //paccpp_rb(p, i);
+    const unsigned char palette_no = paccpp_rb(i + 0x400); //paccpp_rb(p, i + 0x400);
 
     palette= (unsigned char *)&gb_pac_ptr_palette_rom[((palette_no & 0x3f)<<2)]; //get_palette(palette_no, palette);//get_palette(p, palette_no, palette);
     xTile= ((x - 2) << 3);
@@ -511,8 +520,8 @@ static void pac_draw(pac* const p)
   y = 0;
   i = VRAM_SCREEN_TOP;
   while (x != 31 || y != 2) {
-    const unsigned char tile_no = rb(p, i);
-    const unsigned char palette_no = rb(p, i + 0x400);
+    const unsigned char tile_no = paccpp_rb(i); //paccpp_rb(p, i);
+    const unsigned char palette_no = paccpp_rb(i + 0x400); //paccpp_rb(p, i + 0x400);
 
     palette= (unsigned char *)&gb_pac_ptr_palette_rom[((palette_no & 0x3f)<<2)]; //get_palette(palette_no, palette);//get_palette(p, palette_no, palette);
     xTile= ((x - 2) << 3);
@@ -541,8 +550,8 @@ static void pac_draw(pac* const p)
     const short int x = PAC_SCREEN_WIDTH - gb_pac_sprite_pos[(s<<1)] + 15; //const short int x = PAC_SCREEN_WIDTH - p->sprite_pos[s * 2] + 15;
     const short int y = PAC_SCREEN_HEIGHT - gb_pac_sprite_pos[(s<<1) + 1] - 16; //const short int y = PAC_SCREEN_HEIGHT - p->sprite_pos[s * 2 + 1] - 16;
 
-    const unsigned char sprite_info = rb(p, VRAM_SPRITES_INFO + s * 2);
-    const unsigned char palette_no = rb(p, VRAM_SPRITES_INFO + s * 2 + 1);
+    const unsigned char sprite_info = paccpp_rb(VRAM_SPRITES_INFO + s * 2); //paccpp_rb(p, VRAM_SPRITES_INFO + s * 2);
+    const unsigned char palette_no = paccpp_rb(VRAM_SPRITES_INFO + s * 2 + 1); //paccpp_rb(p, VRAM_SPRITES_INFO + s * 2 + 1);
 
     const bool flip_x = (sprite_info >> 1) & 1;
     const bool flip_y = (sprite_info >> 0) & 1;
@@ -677,7 +686,7 @@ static inline void sound_update(pac* const p)
   //unsigned int auxFrec[3];
   for (unsigned char i=0;i<3;i++)      
   {
-   unsigned int frec= p->sound_chip.voices[i].frequency;
+   unsigned int frec= gb_wsg_voice_frequency[i]; //p->sound_chip.voices[i].frequency;
    if (gb_use_sound_digital==1)
    {
     frec= (i==0) ? (frec>>4) : (frec>>5); //Para pulsos digitales    
@@ -701,7 +710,7 @@ static inline void sound_update(pac* const p)
    
    
    gbFrecMixer_now[i]= frec;
-   gbVolMixer_now[i]= ((p->sound_chip.voices[i].frequency>0)&&(p->sound_chip.voices[i].volume>0)) ? 15 : 0;
+   gbVolMixer_now[i]= ((gb_wsg_voice_frequency[i]>0)&&(gb_wsg_voice_volume[i]>0)) ? 15 : 0; //gbVolMixer_now[i]= ((p->sound_chip.voices[i].frequency>0)&&(p->sound_chip.voices[i].volume>0)) ? 15 : 0;
    //gbVolMixer_now[i]= ((p->sound_chip.voices[i].frequency>0)&&(p->sound_chip.voices[i].volume>0)) ? 1 : 0;
    //gb_ct_Pulse[i]= ((gbFrecMixer_now[i]>0)&&(gbVolMixer_now[i]>0)) ? (unsigned int)((10000 / gbFrecMixer_now[i]))>>1 : 0; //10000 Hz
    if (gb_use_sound_digital==1)
@@ -754,8 +763,8 @@ void pac_init(pac* const p)
 
   z80_init(&p->cpu);  
   p->cpu.userdata = p;
-  p->cpu.read_byte = rb;
-  p->cpu.write_byte = wb;
+  //p->cpu.read_byte = paccpp_rb; //rb;
+  //p->cpu.write_byte = paccpp_wb; //wb;
   p->cpu.port_in = port_in;
   p->cpu.port_out = port_out;
 
@@ -768,9 +777,9 @@ void pac_init(pac* const p)
   
   //memset(gb_jj_screen, 0, sizeof(gb_jj_screen)); //Ya no se necesita
 
-  p->int_vector = 0;
-  p->vblank_enabled = 0;
-  p->sound_enabled = 0;
+  gb_pac_int_vector = 0;//p->int_vector = 0;
+  gb_pac_vblank_enabled = 0; //p->vblank_enabled = 0;
+  gb_pac_sound_enabled = 0; //p->sound_enabled = 0;
   gb_pac_flip_screen= 0; //p->flip_screen = 0;
 
   // in 0 port
@@ -817,9 +826,9 @@ void pac_init(pac* const p)
   }
   //memcpy(p->palette_rom, gb_rom_82s1264a, 0x100);
   gb_pac_ptr_palette_rom= gb_rom_82s1264a; //p->palette_rom= gb_rom_82s1264a;
-  memcpy(gb_pac_ptr_tile_rom, gb_rom_pacman5e, 0x1000); //memcpy(p->tile_rom, gb_rom_pacman5e, 0x1000);
+//Ya no se necesita  //memcpy(gb_pac_ptr_tile_rom, gb_rom_pacman5e, 0x1000); //memcpy(p->tile_rom, gb_rom_pacman5e, 0x1000);
   //p->tile_rom= gb_rom_pacman5e;
-  memcpy(gb_pac_ptr_sprite_rom, gb_rom_pacman5f, 0x1000); //memcpy(p->sprite_rom, gb_rom_pacman5f, 0x1000);
+//Ya no se necesita //memcpy(gb_pac_ptr_sprite_rom, gb_rom_pacman5f, 0x1000); //memcpy(p->sprite_rom, gb_rom_pacman5f, 0x1000);
   //p->sprite_rom= gb_rom_pacman5f;
   //memcpy(p->sound_rom1, gb_rom_82s1261m, 0x100); //No lo necesito genero frecuencias con oscilador
   //p->sound_rom1= gb_rom_82s1261m;
@@ -877,11 +886,14 @@ void pac_init(pac* const p)
   // free(file9);
   */
 
-  preload_images(p);
+  //preload_images(p); //Ya no lo necesito, tengo los tiles y sprites convertidos a bitmap
+  gb_pac_ptr_tiles= (unsigned char *)gb_dataconv_tiles;
+  gb_pac_ptr_sprites= (unsigned char *)gb_dataconv_sprites;
+
   //p->update_screen = NULL;
 
   // audio
-  wsg_init(&p->sound_chip); //revisar sonido //wsg_init(&p->sound_chip, p->sound_rom1); //revisar sonido
+  wsg_init(); //wsg_init(&p->sound_chip); //revisar sonido //wsg_init(&p->sound_chip, p->sound_rom1); //revisar sonido
   //JJ p->audio_buffer_len = WSG_SAMPLE_RATE / PAC_FPS; //revisar sonido
   //JJ p->audio_buffer = (int16_t *) calloc(p->audio_buffer_len, sizeof(int16_t));
   //JJ p->sample_rate = 44100; //revisar sonido
@@ -917,10 +929,11 @@ void pac_update(pac* const p, unsigned int ms)
       p->cpu.cyc -= PAC_CYCLES_PER_FRAME;
 
       // trigger vblank if enabled:
-      if (p->vblank_enabled)
+      //if (p->vblank_enabled)
+      if (gb_pac_vblank_enabled)
       {
         // p->vblank_enabled = 0;
-        z80_gen_int(&p->cpu, p->int_vector);
+        z80_gen_int(&p->cpu, gb_pac_int_vector); //z80_gen_int(&p->cpu, p->int_vector);
 
         gb_vga_time_cur= millis();
         //if ((gb_fps_cur & 0x01) == 0)

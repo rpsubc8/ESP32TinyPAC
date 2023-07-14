@@ -61,8 +61,8 @@
  extern uint8_t* gb_pac_ptr_ram;
  extern uint8_t* gb_pac_ptr_tiles;
  extern uint8_t* gb_pac_ptr_sprites;
- extern uint8_t* gb_pac_ptr_tile_rom;
- extern uint8_t* gb_pac_ptr_sprite_rom;
+ //extern uint8_t* gb_pac_ptr_tile_rom; //No se necesita se tiene en FLASH convertido
+ //extern uint8_t* gb_pac_ptr_sprite_rom; //No se necesita se tiene en Flash convertido
  extern const unsigned char* gb_pac_ptr_palette_rom;
  extern uint8_t gb_pac_sprite_pos[0x10];
  extern bool gb_pac_flip_screen;
@@ -77,6 +77,13 @@
  extern unsigned char gb_pac_board_test;
  extern unsigned char gb_pac_p1_start;
  extern unsigned char gb_pac_p2_start;
+ extern uint8_t gb_pac_int_vector;
+ extern bool gb_pac_vblank_enabled;
+ extern bool gb_pac_sound_enabled;
+ extern uint32_t gb_wsg_voice_frequency[3];
+ extern uint32_t gb_wsg_voice_accumulator[3];
+ extern uint8_t gb_wsg_voice_waveform_no[3]; 
+ extern uint8_t gb_wsg_voice_volume[3];
  extern const unsigned char* gb_ptr_id_rom[4]; //4 punteros a la rom 0x4000
  extern const unsigned char *gb_ptr_rom_82s1237f;
 

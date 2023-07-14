@@ -127,8 +127,8 @@ unsigned char gb_show_fps=0;
 uint8_t* gb_pac_ptr_ram;
 uint8_t* gb_pac_ptr_tiles;
 uint8_t* gb_pac_ptr_sprites;
-uint8_t* gb_pac_ptr_tile_rom;
-uint8_t* gb_pac_ptr_sprite_rom;
+//uint8_t* gb_pac_ptr_tile_rom; //No se necesita se tiene en flash convertido
+//uint8_t* gb_pac_ptr_sprite_rom; //No se necesita se tiene en flash convertido
 const unsigned char* gb_pac_ptr_palette_rom;
 uint8_t gb_pac_sprite_pos[0x10];
 bool gb_pac_flip_screen=0;
@@ -143,6 +143,13 @@ unsigned char gb_pac_credits_btn=0;
 unsigned char gb_pac_board_test=0;
 unsigned char gb_pac_p1_start=0;
 unsigned char gb_pac_p2_start=0;
+uint8_t gb_pac_int_vector=0;
+bool gb_pac_vblank_enabled=0;
+bool gb_pac_sound_enabled=0;
+uint32_t gb_wsg_voice_frequency[3]={0,0,0};
+uint32_t gb_wsg_voice_accumulator[3]={0,0,0};
+uint8_t gb_wsg_voice_waveform_no[3]={0,0,0};
+uint8_t gb_wsg_voice_volume[3]={0,0,0};
 const unsigned char* gb_ptr_id_rom[4]; //4 punteros a la rom
 const unsigned char *gb_ptr_rom_82s1237f;
 
@@ -878,11 +885,12 @@ void setup()
  #endif 
 
  //gb_pac_ptr_rom= (uint8_t *)malloc(0x4000); 
- gb_pac_ptr_tiles= (uint8_t *)malloc(0x4000); //256 * 8 * 8
- gb_pac_ptr_sprites= (uint8_t *)malloc(0x4000); //64 * 16 * 16
+ //gb_pac_ptr_tiles= (uint8_t *)malloc(0x4000); //256 * 8 * 8 //Apunta a Flash
+ //gb_pac_ptr_sprites= (uint8_t *)malloc(0x4000); //64 * 16 * 16 //Apunta a Flash 
+
  gb_pac_ptr_ram= (uint8_t *)malloc(0x1000);
- gb_pac_ptr_tile_rom= (uint8_t *)malloc(0x1000);
- gb_pac_ptr_sprite_rom= (uint8_t *)malloc(0x1000);
+ //gb_pac_ptr_tile_rom= (uint8_t *)malloc(0x1000); //No se necesita se tiene en flash convertido
+ //gb_pac_ptr_sprite_rom= (uint8_t *)malloc(0x1000); //No se necesita se tiene en flash convertido
 
  //pac_assign_ptr(p); //No lo necesito
  

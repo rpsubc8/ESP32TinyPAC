@@ -47,9 +47,9 @@ struct pac
   //uint8_t* tiles; // to store predecoded tiles 16384 bytes Esta en gb_pac_ptr_tiles
   //uint8_t* sprites; // to store predecoded sprites 16384 bytes  Esta en gb_pac_ptr_sprites
 
-  uint8_t int_vector;
-  bool vblank_enabled;
-  bool sound_enabled;
+  //uint8_t int_vector;
+  //bool vblank_enabled;
+  //bool sound_enabled;
 //  bool flip_screen;
 
   // in 0 port
@@ -63,7 +63,7 @@ struct pac
   //void (*update_screen)(pac* const n);
 
   // audio
-   wsg sound_chip; //revisar sonido
+//   wsg sound_chip; //revisar sonido
   //JJ int audio_buffer_len; //revisar sonido
   //JJ int16_t* audio_buffer; //revisar sonido
   //JJ int sample_rate; //revisar sonido
@@ -83,5 +83,9 @@ void pac_update(pac* const p, unsigned int ms);
 //#ifdef use_lib_sound_ay8912
 // void sound_cycleFabgl(void);
 //#endif
+
+//uint8_t paccpp_rb(void* userdata, uint16_t addr);
+uint8_t paccpp_rb(uint16_t addr);
+void paccpp_wb(uint16_t addr, uint8_t val);
 
 #endif // PAC_PAC_H

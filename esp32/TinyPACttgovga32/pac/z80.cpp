@@ -1,6 +1,7 @@
 #include "gbConfig.h"
 #include "Arduino.h"
 #include "z80.h"
+#include "paccpp.h"
 
 // MARK: timings
 static const uint8_t cyc_00[256] = {4, 10, 7, 6, 4, 4, 7, 4, 4, 11, 7, 6, 4, 4,
@@ -48,23 +49,31 @@ static const uint8_t cyc_ddfd[256] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 15, 4, 4, 4, 4,
 #define GET_BIT(n, val) (((val) >> (n)) & 1)
 
 static inline uint8_t rb(z80* const z, uint16_t addr) {
-  //revisar quitar z
-  return z->read_byte(z->userdata, addr);
+  //revisar quitar z Hay que quitar llamadas rb y poner directo paccpp_rb
+  //return z->read_byte(z->userdata, addr);
+  return paccpp_rb(addr); //leemos directamente desde paccpp
 }
 
 static inline void wb(z80* const z, uint16_t addr, uint8_t val) {
-  z->write_byte(z->userdata, addr, val);
+  //revisar quitar z
+  //z->write_byte(z->userdata, addr, val);
+ paccpp_wb(addr, val); //escribimos directamente desde paccpp
 }
 
 static inline uint16_t rw(z80* const z, uint16_t addr) {
   //revisar quitar z
-  return (z->read_byte(z->userdata, addr + 1) << 8) |
-         z->read_byte(z->userdata, addr);
+  //return (z->read_byte(z->userdata, addr + 1) << 8) |
+  //       z->read_byte(z->userdata, addr);
+  return (paccpp_rb(addr + 1) << 8) |
+          paccpp_rb(addr); //leemos directamente desde paccpp 
 }
 
 static inline void ww(z80* const z, uint16_t addr, uint16_t val) {
-  z->write_byte(z->userdata, addr, val & 0xFF);
-  z->write_byte(z->userdata, addr + 1, val >> 8);
+  //revisar quitar z
+  //z->write_byte(z->userdata, addr, val & 0xFF);
+  //z->write_byte(z->userdata, addr + 1, val >> 8);
+  paccpp_wb(addr, val & 0xFF);
+  paccpp_wb(addr + 1, val >> 8); //escribimos directamente desde paccpp  
 }
 
 static inline void pushw(z80* const z, uint16_t val) {
@@ -709,8 +718,8 @@ static inline void process_interrupts(z80* const z) {
 // and userdata must be manually set by the user afterwards.
 void z80_init(z80* const z) 
 {
-  z->read_byte = NULL;
-  z->write_byte = NULL;
+  //z->read_byte = NULL;
+  //z->write_byte = NULL;
   z->port_in = NULL;
   z->port_out = NULL;
   z->userdata = NULL;

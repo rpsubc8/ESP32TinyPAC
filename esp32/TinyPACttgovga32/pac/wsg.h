@@ -8,25 +8,25 @@
 
 #define WSG_SAMPLE_RATE 96000
 
-typedef struct wsg_voice 
-{
-  uint32_t frequency; // 20 bit value
-  uint32_t accumulator; // 20 bit value
-  uint8_t waveform_no; // 3 bit value
-  uint8_t volume; // 4 bit value
-} wsg_voice;
+//typedef struct wsg_voice 
+//{
+//  uint32_t frequency; // 20 bit value
+//  uint32_t accumulator; // 20 bit value
+//  uint8_t waveform_no; // 3 bit value
+//  uint8_t volume; // 4 bit value
+//} wsg_voice;
 
-typedef struct wsg 
-{
-  wsg_voice voices[3];
-  //uint8_t* sound_rom; //No lo necesito genero frecuencias con oscilador
-  //int gain; //No lo necesito
-} wsg;
+//typedef struct wsg 
+//{
+//  wsg_voice voices[3];
+//  //uint8_t* sound_rom; //No lo necesito genero frecuencias con oscilador
+//  //int gain; //No lo necesito
+//} wsg;
 
 //void wsg_init(wsg* const w, unsigned char* const sound_rom);
-void wsg_init(wsg* const w);
-void wsg_write(wsg* const w, uint8_t address, uint8_t value);
-void wsg_play(wsg* const w, int16_t* const buffer, int buffer_len);
+void wsg_init(void); //void wsg_init(wsg* const w);
+void wsg_write(uint8_t address, uint8_t value); //void wsg_write(wsg* const w, uint8_t address, uint8_t value);
+//void wsg_play(wsg* const w, int16_t* const buffer, int buffer_len);
 
 
 
