@@ -5,6 +5,7 @@ Port emulator Arcade Pacman SDL x86 (superzazu) to ESP32 (TTGO VGA32 1.x)
 <ul>
  <li><a href='https://discord.gg/yjYnvMbTtx'><b>Discord:</b> https://discord.gg/yjYnvMbTtx</a></li>
  <li><a href='https://www.youtube.com/watch?v=AG-AjycEDfU'><b>Youtube:</b> https://www.youtube.com/watch?v=AG-AjycEDfU</a></li>
+ <li><a href='https://retrowiki.es/viewforum.php?f=114'><b>Forum: </b>https://retrowiki.es/viewforum.php?f=114</a></li>
 </ul>
 
 <h1>Documentacion (Help)</h1>
